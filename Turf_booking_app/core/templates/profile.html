@@ -1,0 +1,862 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | GoTurfy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .stats-card {
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .tab-active {
+            border-bottom: 3px solid #10b981;
+            color: #10b981;
+            font-weight: 500;
+        }
+        .booking-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        /* Adjusted avatar-upload styles for new modal design */
+        .avatar-upload .avatar-preview {
+            position: relative;
+            max-width: 150px;
+            margin: 0 auto;
+        }
+
+        /* Styles for Messages Pop-up Effect */
+        @keyframes slideDownFadeIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .message-popup {
+            animation: slideDownFadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-futbol text-green-500 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">GoTurfy</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{% url 'home' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+                        <a href="{% url 'turfs' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Turfs</a>
+                        <a href="{% url 'booking' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Bookings</a>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                  
+                    <button id="logout-button" class="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                    <div class="ml-4 relative flex-shrink-0">
+                        <div>
+                            <button class="bg-white rounded-full flex text-sm outline-none ring-2 ring-offset-2 ring-green-500" id="user-menu">
+                                <span class="sr-only">Open user menu</span>
+                                <img class="h-8 w-8 rounded-full object-cover object-center"  src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}"  alt="Profile picture">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div id="message-container" class="sticky top-0 z-20 w-full px-4 sm:px-6 lg:px-8 message-popup">
+        {% for message in messages %}
+        <div class="relative flex items-center justify-between p-3 mt-4 mb-3 rounded-md shadow-md
+            {% if message.tags == 'success' %} bg-green-100 text-green-800
+            {% elif message.tags == 'error' %} bg-red-100 text-red-800
+            {% elif message.tags == 'info' %} bg-blue-100 text-blue-800
+            {% elif message.tags == 'warning' %} bg-yellow-100 text-yellow-800
+            {% endif %}"
+            role="alert" aria-live="assertive">
+            <p class="mr-4">{{ message }}</p>
+            <button type="button" class="close-button text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded-full p-1" aria-label="Dismiss message">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="profile-header text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="flex-shrink-0 relative">
+                    <div class="avatar-upload">
+                        <div class="avatar-preview">
+                             <img id="profile-main-avatar" class="h-32 w-32 rounded-full border-4 object-cover border-white shadow-lg"
+                                  src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}"
+                                  alt="Profile picture">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 md:ml-8 text-center md:text-left">
+                    <h1 class="text-3xl font-bold" id="profile-name">{{ request.user.fullname }}</h1>
+                    <p class="mt-2 text-green-100">Member since {{ request.user.joined|date:"F Y" }}</p>
+                    <p class="mt-2 text-green-100"><i class="fas fa-envelope mr-2"></i> <span id="profile-email">{{ request.user.email }}</span></p>
+                    <!-- <p class="mt-2 text-green-100"><i class="fas fa-phone mr-2"></i> <span id="profile-phone">{{ request.user.phone|default:"N/A" }}</span></p> -->
+                    <div class="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-700 text-green-100">
+                            <i class="fas fa-medal mr-1"></i> {{ request.user.role }}
+                        </span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-green-700">
+                            <i class="fas fa-check-circle mr-1"></i> Verified
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-6 md:mt-0 md:ml-auto flex flex-col sm:flex-row gap-3">
+                    <button id="edit-profile-btn" class="inline-flex items-center px-4 py-2 border border-white rounded-md text-white hover:bg-white hover:text-green-600 transition duration-300">
+                        <i class="fas fa-edit mr-2"></i> Edit Profile
+                    </button>
+                    <button id="change-password-btn" class="inline-flex items-center px-4 py-2 border border-white rounded-md text-white hover:bg-white hover:text-green-600 transition duration-300">
+                        <i class="fas fa-lock mr-2"></i> Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                            <i class="fas fa-calendar-check text-white text-xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Bookings</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">24</div>
+                            </dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                            <i class="fas fa-clock text-white text-xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Hours Played</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">48</div>
+                                <span class="ml-2 text-sm font-medium text-gray-500">hours</span>
+                            </dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                            <i class="fas fa-futbol text-white text-xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Favorite Sport</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">Football</div>
+                            </dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                            <i class="fas fa-heart text-white text-xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Favourites</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-semibold text-gray-900">10</div>
+                            </dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto mt-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 overflow-x-auto">
+                    <a href="#" data-tab="bookings" class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-green-600 border-green-500">
+                        <i class="fas fa-calendar-alt mr-2"></i> My Bookings
+                    </a>
+                    <a href="#" data-tab="favorites" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-heart mr-2"></i> Favorites
+                    </a>
+                    <a href="#" data-tab="achievements" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-trophy mr-2"></i> Achievements
+                    </a>
+                    <a href="#" data-tab="settings" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-cog mr-2"></i> Settings
+                    </a>
+                    <a href="#" data-tab="payment" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-credit-card mr-2"></i> Payment Methods
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <div id="bookings-tab" class="tab-content active">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-medium text-gray-900">Upcoming Bookings</h2>
+                    <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-plus mr-2"></i> New Booking
+                    </button>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-12">
+                    <ul class="divide-y divide-gray-200">
+                        <li class="booking-card hover:bg-gray-50 transition duration-150">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
+                                            <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-lg font-medium text-gray-900">Elite Football Arena</div>
+                                            <div class="text-sm text-gray-500 mt-1">
+                                                <span class="inline-flex items-center">
+                                                    <i class="fas fa-calendar-day mr-1.5"></i> Today, 5:00 PM - 7:00 PM
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold text-gray-900">₹1600</div>
+                                            <div class="text-sm text-green-600 font-medium">
+                                                <i class="fas fa-check-circle mr-1"></i> Confirmed
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 sm:mt-0 flex space-x-3">
+                                            <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                <i class="fas fa-edit mr-2"></i> Modify
+                                            </button>
+                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                <i class="fas fa-receipt mr-2"></i> Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-medium text-gray-900">Past Bookings</h2>
+                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-filter mr-2"></i> Filter
+                    </button>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <ul class="divide-y divide-gray-200">
+                        <li class="booking-card hover:bg-gray-50 transition duration-150">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
+                                            <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-lg font-medium text-gray-900">Multi-Sport Complex</div>
+                                            <div class="text-sm text-gray-500 mt-1">
+                                                <span class="inline-flex items-center">
+                                                    <i class="fas fa-calendar-day mr-1.5"></i> May 12, 6:00 PM - 8:00 PM
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold text-gray-900">₹3000</div>
+                                            <div class="text-sm text-green-600 font-medium">
+                                                <i class="fas fa-check-circle mr-1"></i> Completed
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 sm:mt-0 flex space-x-3">
+                                            <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                <i class="fas fa-redo mr-2"></i> Book Again
+                                            </button>
+                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                <i class="fas fa-receipt mr-2"></i> Details
+                                            </button>
+                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                                <i class="fas fa-star mr-2"></i> Rate
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="favorites-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-medium text-gray-900">Favorite Turfs</h2>
+                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-filter mr-2"></i> Filter
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="h-48 bg-gray-200 overflow-hidden">
+                            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
+                        </div>
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Elite Football Arena</h3>
+                                <button class="text-red-500 hover:text-red-600">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1.5"></i> Downtown, City
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1.5"></i> 4.8 (120 reviews)
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-lg font-bold text-gray-900">₹800/hr</span>
+                                <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="achievements-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-medium text-gray-900">Your Achievements</h2>
+                    <div class="text-sm text-gray-500">
+                        <span class="font-medium text-green-600">15</span> of <span class="font-medium">25</span> achievements unlocked
+                    </div>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Progress</h3>
+                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-green-600 h-2.5 rounded-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        <li class="p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-trophy text-green-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">First Booking</div>
+                                    <div class="text-sm text-gray-500">Complete your first turf booking</div>
+                                </div>
+                                <div class="ml-auto">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check mr-1"></i> Unlocked
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <i class="fas fa-trophy text-gray-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Turf Explorer</div>
+                                    <div class="text-sm text-gray-500">Book at 5 different turfs</div>
+                                </div>
+                                <div class="ml-auto">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        3/5
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="settings-tab" class="tab-content hidden">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Account Settings</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your account preferences and privacy settings.</p>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Notification Preferences</label>
+                                <div class="mt-4 space-y-4">
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="email-notifications" name="email-notifications" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="email-notifications" class="font-medium text-gray-700">Email notifications</label>
+                                            <p class="text-gray-500">Get important updates via email</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="sms-notifications" name="sms-notifications" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="sms-notifications" class="font-medium text-gray-700">SMS notifications</label>
+                                            <p class="text-gray-500">Get booking reminders via SMS</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Privacy Settings</label>
+                                <div class="mt-4 space-y-4">
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="show-profile" name="show-profile" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="show-profile" class="font-medium text-gray-700">Public profile</label>
+                                            <p class="text-gray-500">Allow others to view your profile</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="show-activity" name="show-activity" type="checkbox" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="show-activity" class="font-medium text-gray-700">Show activity</label>
+                                            <p class="text-gray-500">Share your booking activity</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payment-tab" class="tab-content hidden">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Payment Methods</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your saved payment methods for faster checkout.</p>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                            <i class="fab fa-cc-visa text-green-600 text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Visa ending in 4242</div>
+                                            <div class="text-sm text-gray-500">Expires 04/2025</div>
+                                        </div>
+                                    </div>
+                                    <button class="text-red-500 hover:text-red-700 text-sm font-medium">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                            <i class="fab fa-paypal text-green-500 text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">PayPal</div>
+                                            <div class="text-sm text-gray-500">john.doe@example.com</div>
+                                        </div>
+                                    </div>
+                                    <button class="text-red-500 hover:text-red-700 text-sm font-medium">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <i class="fas fa-plus mr-2"></i> Add Payment Method
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Profile Edit -->
+    <div id="edit-profile-modal" class="modal fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
+                <form id="edit-profile-form" action="{% url 'update_profile' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div>
+                        <div class="mt-3 text-center sm:mt-5">
+                            <h3 class="text-2xl leading-8 font-extrabold text-gray-900 mb-6" id="modal-title">Edit Profile</h3>
+                            <div class="mt-6">
+                                <div class="flex flex-col items-center justify-center space-y-4 mb-8">
+                                    <div class="relative w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden">
+                                        <img id="modal-avatarr" class="w-full h-full object-cover"
+                                             src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}"
+                                             alt="Profile photo">
+                                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                                            <label for="modal-avatar-upload" class="cursor-pointer text-white text-xl">
+                                                <i class="fas fa-camera"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="modal-avatar-upload" name="profile_picture" accept=".png, .jpg, .jpeg" class="hidden" />
+
+                                    {% if request.user.profile_picture %}
+                                    <div class="flex items-center">
+                                        <input type="checkbox" name="profile_picture-clear" id="profile_picture-clear"
+                                               class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                        <label for="profile_picture-clear" class="ml-2 text-sm text-gray-700">Clear current image</label>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="grid grid-cols-1 gap-y-6 gap-x-4">
+                                    <div class="sm:col-span-6">
+                                        <label for="fullname" class="block text-sm font-medium text-gray-700 text-left">Full Name</label>
+                                        <div class="mt-1">
+                                            <input type="text" name="fullname" id="fullname" autocomplete="name"
+                                                   value="{{ request.user.fullname|default:'' }}"
+                                                   class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                        </div>
+                                    </div>
+                                    <div class="sm:col-span-6">
+                                        <label for="phone" class="block text-sm font-medium text-gray-700 text-left">Phone Number</label>
+                                        <div class="mt-1">
+                                            <input type="text" name="phone" id="phone" autocomplete="tel"
+                                                   value="{{ request.user.phone|default:'' }}"
+                                                   class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 sm:grid sm:grid-cols-2 sm:gap-4 sm:grid-flow-row-dense">
+                        <button type="submit" id="save-profile-btn"
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:col-start-2">
+                            Save Changes
+                        </button>
+                        <button type="button" id="cancel-edit-btn"
+                                class="mt-3 w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mt-0 sm:col-start-1">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="change-password-modal" class="modal fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
+                <form method="POST" action="{% url 'change_password' %}">
+                    {% csrf_token %}
+                    <div>
+                        <div class="mt-3 text-center sm:mt-5">
+                            <h3 class="text-2xl leading-8 font-extrabold text-gray-900 mb-6" id="modal-title">Change Your Password</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="current-password" class="block text-sm font-medium text-gray-700 text-left">Current Password</label>
+                                    <div class="mt-1">
+                                        <input id="current-password" name="current_password" type="password" required
+                                               class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="new-password" class="block text-sm font-medium text-gray-700 text-left">New Password</label>
+                                    <div class="mt-1">
+                                        <input id="new-password" name="new_password" type="password" required
+                                               class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-500 text-left">Must be at least 8 characters</p>
+                                </div>
+                                <div>
+                                    <label for="confirm-password" class="block text-sm font-medium text-gray-700 text-left">Confirm New Password</label>
+                                    <div class="mt-1">
+                                        <input id="confirm-password" name="confirm_password" type="password" required
+                                               class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 sm:grid sm:grid-cols-2 sm:gap-4 sm:grid-flow-row-dense">
+                        <button type="submit" id="save-password-btn"
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:col-start-2">
+                            Update Password
+                        </button>
+                        <button type="button" id="cancel-password-btn"
+                                class="mt-3 w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mt-0 sm:col-start-1">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+   <footer class="bg-gray-900 border-t border-gray-800">
+  <div class="max-w-7xl mx-auto pb-8 px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <!-- Branding -->
+      <div class="flex items-center space-x-4">
+        <i class="fas fa-futbol text-white text-2xl "></i>
+        <span class="text-lg font-semibold text-white">GoTurfy</span>
+      </div>
+      
+      <!-- Social links -->
+      <div class="flex space-x-6 mt-0 md:mt-0">
+        <a href="#" class="text-gray-400 hover:text-green-500 transition-colors" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-green-500 transition-colors" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-green-500 transition-colors" aria-label="Twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-green-500 transition-colors" aria-label="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Copyright and legal links -->
+    <div class="mt-6 pt-6 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+      <p class="text-sm text-gray-400">
+        &copy; {% now "Y" %} GoTurfy. All rights reserved.
+      </p>
+      <div class="flex space-x-4 mt-3 md:mt-0">
+        <a href="{% url 'privacy_policy' %}" class="text-xs text-gray-400 hover:text-green-500 transition-colors">
+          Privacy
+        </a>
+        <a href="{% url 'terms_and_conditions' %}" class="text-xs text-gray-400 hover:text-green-500 transition-colors">
+          Terms
+        </a>
+        <a href="{% url 'contact_us' %}" class="text-xs text-gray-400 hover:text-green-500 transition-colors">
+          Contact
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Tab switching functionality ---
+            const tabs = document.querySelectorAll('nav.-mb-px a[data-tab]');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+
+                    tabs.forEach(t => {
+                        t.classList.remove('tab-active', 'text-green-600', 'border-green-500');
+                        t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    });
+
+                    this.classList.add('tab-active', 'text-green-600', 'border-green-500');
+                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    });
+
+                    document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+
+            // --- Modal functionality ---
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const changePasswordBtn = document.getElementById('change-password-btn');
+            const editProfileModal = document.getElementById('edit-profile-modal');
+            const changePasswordModal = document.getElementById('change-password-modal');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
+            const cancelPasswordBtn = document.getElementById('cancel-password-btn');
+
+            function openModal(modalElement) {
+                modalElement.classList.remove('hidden');
+            }
+
+            function closeEditProfileModal() {
+                editProfileModal.classList.add('hidden');
+                // Reset profile picture preview if user cancels or clicks outside
+                const modalAvatar = document.getElementById('modal-avatarr');
+                const defaultSrc = "{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}";
+                modalAvatar.src = defaultSrc;
+                // Optionally reset the file input field so selecting the same file again triggers change event
+                const fileInput = document.getElementById('modal-avatar-upload');
+                if (fileInput) {
+                    fileInput.value = ''; // Clears the selected file
+                }
+            }
+
+            function closeChangePasswordModal() {
+                changePasswordModal.classList.add('hidden');
+                // Clear password fields on close
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            }
+
+            // Event Listeners for opening modals
+            if (editProfileBtn) {
+                editProfileBtn.addEventListener('click', () => openModal(editProfileModal));
+            }
+            if (changePasswordBtn) {
+                changePasswordBtn.addEventListener('click', () => openModal(changePasswordModal));
+            }
+
+            // Event Listeners for closing modals
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', closeEditProfileModal);
+            }
+            if (cancelPasswordBtn) {
+                cancelPasswordBtn.addEventListener('click', closeChangePasswordModal);
+            }
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === editProfileModal) {
+                    closeEditProfileModal();
+                }
+                if (e.target === changePasswordModal) {
+                    closeChangePasswordModal();
+                }
+            });
+
+            // --- Avatar upload functionality (for preview) ---
+            const modalAvatarUpload = document.getElementById('modal-avatar-upload');
+            const modalAvatar = document.getElementById('modal-avatarr');
+            const profileMainAvatar = document.getElementById('profile-main-avatar');
+
+            function readURL(input, target) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        target.src = e.target.result;
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+            if (modalAvatarUpload) {
+                modalAvatarUpload.addEventListener('change', function() {
+                    readURL(this, modalAvatar);
+                    readURL(this, profileMainAvatar);
+                });
+            }
+
+            // --- Logout confirmation ---
+            const logoutButton = document.getElementById('logout-button');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const confirmLogout = confirm("Are you sure you want to log out?");
+                    if (confirmLogout) {
+                        window.location.href = "{% url 'logout' %}";
+                    }
+                });
+            }
+
+            // --- Django Messages Dismissal ---
+            function setupMessageDismissal() {
+                const messageContainer = document.getElementById('message-container');
+                if (!messageContainer) return;
+
+                const messages = messageContainer.querySelectorAll('[role="alert"]');
+
+                messages.forEach(messageDiv => {
+                    const closeButton = messageDiv.querySelector('.close-button');
+                    if (closeButton) {
+                        closeButton.addEventListener('click', () => {
+                            messageDiv.classList.add('hidden'); // Hide immediately
+                            // Optional: remove after a short delay for smooth transition if needed,
+                            // but 'hidden' directly removes it from layout.
+                            setTimeout(() => messageDiv.remove(), 300); // Remove from DOM after a small delay
+                        });
+                    }
+
+                    // Auto-dismiss after 5 seconds
+                    setTimeout(() => {
+                        messageDiv.classList.add('hidden'); // Hide
+                        setTimeout(() => messageDiv.remove(), 300); // Remove from DOM
+                    }, 6000); // 5000 milliseconds = 5 seconds
+                });
+            }
+
+            setupMessageDismissal(); // Call the function to set up dismissal for messages
+        });
+    </script>
+</body>
+</html>

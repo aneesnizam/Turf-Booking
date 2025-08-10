@@ -1,0 +1,42 @@
+{% extends 'core_base/main_layout.html' %}
+
+{% block content %}
+<div class="bg-white">
+    <div class="container mx-auto px-4 py-16 max-w-4xl">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Terms and Conditions</h1>
+            <p class="text-gray-500 mt-2">Last Updated: {% now "F d, Y" %}</p>
+        </div>  
+
+        <div class="prose lg:prose-lg max-w-none text-gray-700">
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">1. Agreement to Terms</h2>
+            <p>By using our website, GoTurfy (the "Site"), you agree to be bound by these Terms and Conditions. If you do not agree, you must not use the Site.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">2. User Accounts</h2>
+            <p>To make a booking, you may be required to register for an account. You agree to provide accurate, current, and complete information during the registration process. You are responsible for safeguarding your password and for all activities that occur under your account.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">3. Bookings, Payments, and Cancellations</h2>
+            <p><strong>Booking Process:</strong> All bookings are subject to availability. A booking is confirmed only after successful payment and receipt of a confirmation email from us.</p>
+            <p><strong>Payments:</strong> You agree to pay all fees and charges for bookings you make on the Site. All payments are processed through our third-party payment gateway. We are not responsible for any errors made by the payment processor.</p>
+            <p><strong>Cancellations and Refunds:</strong> Cancellation policies are set by the individual turf owners and may vary. Please review the specific cancellation policy for each turf before booking. Generally, cancellations made more than 24 hours in advance may be eligible for a partial or full refund, at the discretion of the turf owner and our platform. No-shows are not eligible for refunds.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">4. User Conduct</h2>
+            <p>You agree to use the booked facilities responsibly. You are responsible for any damage caused to the turf or its amenities by you or your guests. You must adhere to all rules and regulations set forth by the turf owner. [Your Website Name] is not responsible for any personal injury sustained during your use of the facilities.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">5. Limitation of Liability</h2>
+            <p>To the fullest extent permitted by law, [Your Website Name] shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (a) your access to or use of or inability to access or use the service; (b) any conduct or content of any third party on the service, including without limitation, any defamatory, offensive, or illegal conduct of other users or third parties; or (c) unauthorized access, use, or alteration of your transmissions or content.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">6. Governing Law</h2>
+            <p>These Terms shall be governed and construed in accordance with the laws of India, without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">7. Changes to Terms</h2>
+            <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide notice of any changes by posting the new Terms and Conditions on this page.</p>
+
+            <div class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800">
+                <p class="font-bold">Disclaimer:</p>
+                <p>These Terms and Conditions are a template and do not constitute legal advice. You should consult with a qualified legal professional to ensure they are appropriate for your business and compliant with all applicable laws.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,582 @@
+{% extends 'core_base/base.html' %} {% load static %}{% block nav %}
+<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+    <a href="{% url 'home' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+    <a href="{% url 'turfs' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Turfs</a>
+    <a href="{% url 'booking' %}" class="border-green-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Bookings</a>
+    <a href="{% url 'favorites' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Favourites</a>
+</div>
+{% endblock %}{% block content %}
+<style>
+  .loader-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; /* Ensures the container doesn't collapse */
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .loader {
+    border: 5px solid #f3f3f3; /* Light grey circle */
+    border-top: 5px solid #22c55e; /* A nice green color (Tailwind's green-500) */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .rating-stars input:checked ~ label {
+  color: #facc15; /* Tailwind yellow-400 */
+}
+.rating-stars label {
+  color: #d1d5db; /* Tailwind gray-300 */
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+  color: #facc15;
+}
+</style>
+
+
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-green-300 to-green-700 text-white py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">Your Bookings</h1>
+        <p class="text-lg">
+          View and manage your upcoming and past turf bookings
+        </p>
+      </div>
+      <div class="mt-6 md:mt-0">
+        <a
+          href="{% url 'turfs' %}"
+          class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-white hover:bg-gray-100"
+        >
+          <i class="fas fa-plus mr-2"></i> New Booking
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Booking Stats -->
+<div class="bg-gray-100 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-8">
+      Your Booking Statistics
+    </h2>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Stat Card 1 -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+              <i class="fas fa-calendar-check text-white text-xl"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Upcoming Bookings
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900">{{upcoming_bookings_count}}</div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat Card 2 -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+              <i class="fas fa-check-circle text-white text-xl"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Completed Bookings
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900">{{completed_booking_count}}</div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat Card 3 -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+              <i class="fas fa-clock text-white text-xl"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Hours Played
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900">{{hours_played}}</div>
+                <span class="ml-2 text-sm font-medium text-gray-500"
+                  >hours</span
+                >
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat Card 4 -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+              <i class="fas fa-wallet text-white text-xl"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Total Spent
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900">₹{{total_cost}}</div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<nav class="-mb-px flex space-x-8">
+  <a href="#" 
+     id="upcoming-tab"
+     data-tab="upcoming"
+     class="border-green-500 text-green-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tab-link active">
+    Upcoming
+  </a>
+  <a href="#" 
+     id="completed-tab"
+     data-tab="completed"
+     class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tab-link">
+    Completed
+  </a>
+  <a href="#" 
+     id="cancelled-tab"
+     data-tab="cancelled"
+     class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tab-link">
+    Cancelled
+  </a>
+</nav>
+  </div>
+</div>
+<!-- <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tabLinks = document.querySelectorAll('.tab-link');
+  
+  tabLinks.forEach(tab => {
+    tab.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Remove active classes from all tabs and content
+      document.querySelectorAll('.tab-link').forEach(t => {
+        t.classList.remove('active', 'border-green-500', 'text-green-600');
+        t.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.add('hidden');
+        c.classList.remove('active');
+      });
+      
+      // Add active classes to clicked tab and corresponding content
+      this.classList.add('active', 'border-green-500', 'text-green-600');
+      this.classList.remove('border-transparent', 'text-gray-500');
+      
+      const tabName = this.getAttribute('data-tab');
+      document.getElementById(`${tabName}-content`).classList.remove('hidden');
+      document.getElementById(`${tabName}-content`).classList.add('active');
+    });
+  });
+});
+</script> -->
+
+
+<!-- Bookings List -->
+<div    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div id="nav_wrapper" class="bg-white shadow overflow-hidden sm:rounded-lg">
+     <!-- Your existing upcoming bookings content -->
+      
+    <div id="upcoming-content" class="tab-content active">
+        {% if upcoming_bookings %}
+  <ul class="divide-y divide-gray-200">
+      <!-- Upcoming Booking 1 -->
+       {% for booking in upcoming_bookings %}
+      <li>
+        <div class="px-4 py-4 sm:px-6">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200"
+              >
+            {% with first_image=booking.turf.images.first %}
+  {% if first_image %}
+    <img
+      class="h-full w-full object-cover"
+      src="{{ first_image.image.url }}"
+      alt="Turf image"
+    />
+  {% else %}
+  
+    <div class="h-full w-full flex items-center justify-center bg-gray-100">
+    <p class="text-sm font-medium text-gray-500">No Image</p>
+</div>
+  {% endif %}
+{% endwith %}
+
+              </div>
+              <div class="ml-4">
+                <div class="text-lg font-medium text-gray-900">
+                  {{ booking.turf.turf_name }}
+                </div>
+                <div class="text-sm text-gray-500 mt-1">
+                  <span class="inline-flex items-center">
+                    <i class="fas fa-calendar-day mr-1.5"></i> {{booking.human_date}},
+                     {{booking.start_time|date:"g:i A"}} -
+                    {{booking.end_time|date:"g:i A"}}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6"
+            >
+              <div class="text-right">
+                <div class="text-lg font-bold text-gray-900">₹{{booking.total_cost}}</div>
+                <div class="text-sm text-green-600 font-medium">
+                  <i class="fas fa-check-circle mr-1"></i> {{ booking.status }}
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex space-x-3">
+             
+                <a href="{% url 'view_booking_detail' booking.verify_token %}"
+                  class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <i class="fas fa-receipt mr-2"></i> View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+{% endfor %}
+</ul>
+  {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+        <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-medium text-gray-900">No upcoming bookings</h3>
+      <p class="mt-2 text-sm text-gray-500">
+       You don't have any upcoming turf bookings. Book a turf to get started!
+      </p>
+      <div class="mt-6">
+        <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-search mr-2"></i> Explore Turfs
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+ <!-- Content for completed bookings -->
+<div id="completed-content" class="tab-content hidden">
+    {% if completed_page_obj %}
+{% include 'partials/completed_bookings.html' %}
+
+
+
+
+
+
+    {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+        <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-medium text-gray-900">No completed bookings</h3>
+      <p class="mt-2 text-sm text-gray-500">
+        You haven't completed any turf bookings yet. Your completed bookings will appear here.
+      </p>
+      <div class="mt-6">
+        <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-search mr-2"></i> Explore Turfs
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<div id="rating-modal" class="fixed inset-0 z-50 hidden items-center justify-center backdrop-blur-sm">
+  <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-bold text-gray-900">Rate Your Experience</h3>
+      <button id="close-modal-btn" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <form id="rating-form" class="mt-4">
+      {% csrf_token %}
+      <input type="hidden" name="booking_id" id="modal-booking-id">
+      
+      <p class="mb-3 text-sm font-medium text-gray-700">How would you rate this turf?</p>
+      
+ 
+
+<div class="rating-stars mb-6 flex flex-row-reverse justify-end space-x-reverse space-x-1">
+    <input type="radio" id="star5" name="score" value="5" class="hidden" />
+    <label for="star5" class="text-3xl">★</label>
+
+    <input type="radio" id="star4" name="score" value="4" class="hidden" />
+    <label for="star4" class="text-3xl">★</label>
+
+    <input type="radio" id="star3" name="score" value="3" class="hidden" />
+    <label for="star3" class="text-3xl">★</label>
+
+    <input type="radio" id="star2" name="score" value="2" class="hidden" />
+    <label for="star2" class="text-3xl">★</label>
+
+    <input type="radio" id="star1" name="score" value="1" class="hidden" />
+    <label for="star1" class="text-3xl">★</label>
+</div>
+
+
+      <div class="mb-6">
+        <label for="comment" class="mb-2 block text-sm font-medium text-gray-700">Add a comment (optional)</label>
+        <textarea id="comment" name="comment" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button id="cancel-rating-btn" type="button" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="submit" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+          Submit Rating
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Content for cancelled bookings -->
+<div id="cancelled-content" class="tab-content hidden">
+    {% if cancelled_bookings %}
+      <ul class="divide-y divide-gray-200">
+            {% for booking in cancelled_bookings %}
+                {% endfor %}
+        </ul>
+    
+      {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+        <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-medium text-gray-900">No cancelled bookings</h3>
+      <p class="mt-2 text-sm text-gray-500">
+   You haven't cancelled any bookings. Any cancelled bookings will appear here.
+      </p>
+      <div class="mt-6">
+       <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-calendar-alt mr-2"></i> View Available Slots
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+  </div>
+</div>
+
+
+
+<!-- regular picks -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex justify-between items-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-900">Your regular picks — the turfs you've chosen the most.</h2>
+    <a
+      href="{% url 'turfs' %}"
+      class="text-green-600 hover:text-green-800 font-medium"
+    >
+      Explore More Turfs <i class="fas fa-arrow-right ml-1"></i>
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    
+    
+    {% for turf in most_booked_turfs %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="relative">
+ {% with first_image=turf.images.all.0 %} {% if first_image %}
+        <img
+          class="w-full h-48 object-cover"
+          src="{{first_image.image.url}}"
+          alt="Turf image"
+        />
+        {% else %}
+        <div class="h-full w-full flex items-center justify-center bg-gray-100">
+    <p class="text-sm font-medium text-gray-500">No Image</p>
+</div>
+        {% endif %} {% endwith %}
+      
+      </div>
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-gray-900">{{ turf.turf_name }}</h3>
+        <p class="text-gray-500 mt-1">
+          <i class="fas fa-map-marker-alt mr-1"></i> {{ turf.place}}
+        </p>
+
+        <div class="mt-4 flex justify-between items-center">
+          <div>
+            <span class="text-gray-900 font-bold text-lg">₹{{ turf.cost_per_hour }}/hr</span>
+          </div>
+          <a href="{% url 'turf_details' turf.id %}" class="text-green-600 hover:text-green-800 font-medium">
+            Book Again <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+{% endfor %}
+ 
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- SCRIPT FOR TABS ---
+    const tabLinks = document.querySelectorAll('.tab-link');
+    tabLinks.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            document.querySelectorAll('.tab-link').forEach(t => {
+                t.classList.remove('active', 'border-green-500', 'text-green-600');
+                t.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            
+            this.classList.add('active', 'border-green-500', 'text-green-600');
+            const tabName = this.getAttribute('data-tab');
+            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+        });
+    });
+
+    // --- RATING MODAL SETUP ---
+    const ratingModal = document.getElementById('rating-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const ratingForm = document.getElementById('rating-form');
+    const modalBookingIdInput = document.getElementById('modal-booking-id');
+
+    function openModal(bookingId) {
+        modalBookingIdInput.value = bookingId;
+        ratingModal.classList.remove('hidden');
+        ratingModal.classList.add('flex');
+    }
+
+    function closeModal() {
+        ratingModal.classList.add('hidden');
+        ratingModal.classList.remove('flex');
+        ratingForm.reset();
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    ratingModal.addEventListener('click', (e) => {
+        if (e.target === ratingModal) {
+            closeModal();
+        }
+    });
+
+    ratingForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(ratingForm);
+        const data = {
+            booking_id: formData.get('booking_id'),
+            score: formData.get('score'),
+            comment: formData.get('comment'),
+        };
+
+        if (!data.score) {
+            alert('Please select a star rating.');
+            return;
+        }
+
+        try {
+            const response = await fetch("{% url 'submit_rating' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                closeModal();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            alert('An unexpected error occurred.');
+        }
+    });
+
+    // --- COMBINED LISTENER FOR PAGINATION AND RATING ---
+    const completedContent = document.getElementById('completed-content');
+
+    completedContent.addEventListener("click", (e) => {
+        // Check if a pagination link was clicked
+        const pageLink = e.target.closest("[data-page]");
+        if (pageLink) {
+            e.preventDefault();
+            const page = pageLink.getAttribute("data-page");
+            const loaderHTML = `<div class="loader-wrapper"><div class="loader"></div><p class="text-gray-500 font-medium">Loading page...</p></div>`;
+            completedContent.innerHTML = loaderHTML;
+
+            fetch(`?completed_page=${page}`, {
+                headers: { "x-requested-with": "XMLHttpRequest" }
+            })
+            .then(response => response.text())
+            .then(html => {
+                completedContent.innerHTML = html;
+            })
+            .catch(err => {
+                console.error("Pagination failed:", err);
+                completedContent.innerHTML = `<p class="text-center text-red-500 p-4">Error loading page.</p>`;
+            });
+            return; // Exit after handling
+        }
+
+        // Check if a rate button was clicked
+        const rateButton = e.target.closest('.rate-btn');
+        if (rateButton) {
+            e.preventDefault();
+            const bookingId = rateButton.dataset.bookingId;
+            openModal(bookingId);
+            return; // Exit after handling
+        }
+    });
+});
+</script>
+{% endblock %}

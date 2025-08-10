@@ -1,0 +1,204 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 1.2cm; }
+        @font-face {
+            font-family: 'DejaVuSans';
+            src: url('{% static "fonts/DejaVuSans.ttf" %}');
+        }
+
+        body {
+            font-family: 'DejaVuSans', Arial, sans-serif;
+            color: #333;
+            background: #fff;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+            border: 1px solid #e6e6e6;
+        }
+
+        /* HEADER */
+        .hdr {
+            width: 100%;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            border: none;
+        }
+        .hdr td { vertical-align: top; }
+        .logo {
+            font-size: 22px;
+            color: #2e8b57;
+            font-weight: bold;
+            margin: 0 auto;
+            padding: 0;
+        }
+        .invoice-title {
+            text-align: right;
+        }
+        .invoice-title h1 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        .small {
+            color: #777;
+            font-size: 12px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* CUSTOMER DETAILS */
+        .details {
+            width: 100%;
+            margin-top: 8px;
+        }
+        .details td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        /* SECTION HEADINGS */
+        .section-title {
+            margin: 14px 0 8px 0;
+            font-weight: bold;
+            color: #2e8b57;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 4px;
+        }
+
+        /* TURF INFO BOX */
+        .turf-details {
+            background: #fafafa;
+            padding: 8px 10px;
+            border-left: 4px solid #2e8b57;
+            margin-bottom: 10px;
+            font-size: 12.5px;
+        }
+
+        /* ITEMS TABLE */
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items th, .items td {
+            padding: 6px 8px;
+            border: 1px solid #e1e1e1;
+        }
+        .items th {
+            background: #f8f8f8;
+            text-align: left;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .total-row td {
+            background: #f8f8f8;
+            font-weight: bold;
+        }
+        .amount {
+            font-weight: bold;
+            font-size: 13.5px;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 18px;
+            padding-top: 8px;
+            font-size: 11.5px;
+            color: #888;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+
+        <!-- HEADER -->
+        <table class="hdr">
+            <tr>
+                <td style="width:60%;border: none;">
+                    <div class="logo">GoTurfy</div>
+                    <div class="small">Your neighborhood turf booking platform</div>
+                </td>
+                <td style="width:40%;border: none;" class="invoice-title">
+                    <h1>INVOICE</h1>
+                    <div class="small">Invoice #{{ booking.id }}</div>
+                    <div class="small">Invoice Date: {{ booking.booking_date|date:"d M Y" }}</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- CUSTOMER & BOOKING INFO -->
+        <table class="details">
+            <tr>
+                <td style="width:55%;padding: 10px; ">
+                    <strong>Billed To</strong><br>
+                    {{ booking.user.get_fullname}}<br>
+                    {{ booking.user.email }}<br>
+                    Phone: {{ booking.user.phone|default:"-" }}
+                </td>
+                <td style="width:45%;padding-left: 10px;display: flex;flex-direction: column;align-items: center;justify-content: center;" class="text-left">
+                    <strong>Booking Date:</strong> {{ booking.booking_date|date:"d M Y" }}<br>
+                    <strong>Time Slot:</strong> {{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}
+                </td>
+            </tr>
+        </table>
+
+        <!-- TURF DETAILS -->
+        <div class="section-title">Turf Details</div>
+        <div class="turf-details">
+            <strong>{{ booking.turf.turf_name }}</strong><br>
+            {{ booking.turf.place }}<br>
+            {{ booking.turf.city }}, {{ booking.turf.district }} - {{ booking.turf.pincode }}<br>
+            Contact: {{ booking.turf.contact_number }}
+        </div>
+
+        <!-- BOOKING SUMMARY -->
+        <div class="section-title">Booking Summary</div>
+        <table class="items">
+            <thead>
+                <tr>
+                    <th style="width:45%">Item Description</th>
+                    <th style="width:15%" class="text-center">Duration</th>
+                    <th style="width:20%" class="text-right">Cost/hr</th>
+                    <th style="width:20%" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ booking.turf.turf_name }} booking</td>
+                    <td class="text-center">{{ duration }} hrs</td>
+                    <td class="text-right">Rs. {{ booking.turf.cost_per_hour }}</td>
+                    <td class="text-right">Rs. {{ booking.total_cost }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" class="text-right">Total Amount:</td>
+                    <td class="text-right amount">Rs. {{ booking.total_cost }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- AMOUNT PAYABLE -->
+        <div style="margin-top:12px; text-align:right;">
+            <strong>Amount Payable: Rs. {{ booking.total_cost }}</strong>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            Thank you for choosing GoTurfy. This is a computer-generated invoice and does not require a signature.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>{% block title %}GoTurfy - Book Sports Turfs Online{% endblock %}</title>
+    
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    </head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-white shadow-md sticky top-0 z-1000 ">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center py-4">
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-green-600"> <h3 class="text-xl font-bold mb-3 flex items-center">
+                   <i class="fas fa-futbol text-green-500 text-2xl mr-2"></i>
+                    GoTurfy
+                </h3></a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="text-gray-600 hover:text-green-600 transition duration-300">Home</a>
+                  
+                    <a href="{% url 'about_us' %}" class="text-gray-600 hover:text-green-600 transition duration-300">About</a>
+                    <a href="{% url 'contact_us' %}" class="text-gray-600 hover:text-green-600 transition duration-300">Contact</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'turfs' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm  font-medium transition duration-300 cursor-pointer">
+                        Book Now
+                    </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="hidden sm:block text-gray-600 hover:text-green-600 transition duration-300">Login</a>
+                        
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+  <footer class="bg-green-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="col-span-2">
+                <h3 class="text-xl font-bold mb-3 flex items-center">
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg> -->
+                    <i class="fas fa-futbol text-white text-2xl mr-1"></i>
+                    GoTurfy
+                </h3>
+                <p class="text-green-200 text-sm w-[70%]">Your premier destination for booking quality sports facilities. Play more, worry less!</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-white">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'about_us' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">About Us</a></li>
+                    <li><a href="{% url 'contact_us' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-white">Legal</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'terms_and_conditions' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Terms & Conditions</a></li>
+                    <li><a href="{% url 'privacy_policy' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Privacy Policy</a></li>
+                </ul>
+            </div>
+   
+        </div>
+        <div class="border-t border-green-700 mt-6 pt-4 text-center text-green-300 text-sm">
+            <p>&copy; {% now "Y" %} GoTurfy. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

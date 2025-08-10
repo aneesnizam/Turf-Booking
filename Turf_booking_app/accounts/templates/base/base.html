@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Your turf booking partner" />
+  <meta name="keywords" content="turf booking, football turf, sports slots, online turf booking" />
+  <meta name="author" content="Turfzio" />
+  
+  <link rel="icon" type="image/png" href="{% static 'img/logo-modified.png' %}" />
+  <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>{% block title %}{% endblock %} | GoTurfy</title>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="h-[40px] border-b border-black border-dotted flex items-center pl-5">
+    <a href="{% url 'landing' %}" class="flex items-center gap-2">
+      <img src="{% static 'img/logo_clear.png' %}" class="w-[30px]" alt="GoTurfy Logo" />
+      <h5 class="font-bold">GoTurfy</h5>
+    </a>
+  </nav>
+
+  <!-- Main Section -->
+  <section class="min-h-screen w-full px-[50px] md:px-[100px] lg:px-[150px] pt-[15px] flex flex-col justify-center items-center bg-[#eefdf4] box-border">
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="w-full mt-2">
+      {% for message in messages %}
+      <div class="p-4 mb-4 rounded flex items-start
+        {% if message.tags == 'success' %}
+          bg-green-100 border-l-4 border-green-500 text-green-700
+        {% elif message.tags == 'info' %}
+          bg-blue-100 border-l-4 border-blue-500 text-blue-700
+        {% elif message.tags == 'warning' %}
+          bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700
+        {% elif message.tags == 'error' %}
+          bg-red-100 border-l-4 border-red-500 text-red-700
+        {% else %}
+          bg-gray-100 border-l-4 border-gray-500 text-gray-700
+        {% endif %}
+      ">
+        <span class="mr-2">
+          {% if message.tags == 'success' %}✅
+          {% elif message.tags == 'info' %}ℹ️
+          {% elif message.tags == 'warning' %}⚠️
+          {% elif message.tags == 'error' %}❌
+          {% else %}💡
+          {% endif %}
+        </span>
+        <span>{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Optional Banner Section -->
+    <div class="w-full bg-amber-100 rounded-3xl h-[200px] mb-[20px] md:mb-0">
+      {% block banner %}{% endblock %}
+    </div>
+
+    <!-- Form Section -->
+    <div class="w-full md:w-[80%] lg:w-[50%] my-3">
+      {% block form %}{% endblock %}
+    </div>
+  </section>
+
+  <!-- Extra Content Block -->
+  {% block content %}{% endblock %}
+
+</body>
+</html>

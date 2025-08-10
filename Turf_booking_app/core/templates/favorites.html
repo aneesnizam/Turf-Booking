@@ -1,0 +1,103 @@
+{% extends 'core_base/base.html' %}
+{% load static %}
+
+{% block nav %}
+<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+    <a href="{% url 'home' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+    <a href="{% url 'turfs' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Turfs</a>
+    <a href="{% url 'booking' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Bookings</a>
+    <a href="{% url 'favorites' %}" class="border-green-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Favourites</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+    .empty-state-icon {
+        font-size: 4rem;
+        opacity: 0.2;
+    }
+    .favourite-card:hover .favourite-remove {
+        opacity: 1;
+    }
+    .favourite-remove {
+        transition: all 0.2s ease;
+        opacity: 0;
+    }
+</style>
+
+<section class="bg-gradient-to-br from-green-300 to-green-700 text-white py-16 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h1 class="text-4xl font-bold mb-4">Your Favourites</h1>
+        <p class="text-xl">Turfs you've saved for quick access</p>
+    </div>
+</section>
+
+<div class="bg-gray-100 py-6">
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Search Bar -->
+        <div class="mb-6 w-[80%] m-auto">
+            <form method="GET" action="{% url 'favorites' %}" class="flex items-center">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <input type="text" name="q" value="{{ request.GET.q }}" 
+                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+                           placeholder="Search by turf name or place...">
+                </div>
+                <button type="submit" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Search
+                </button>
+                {% if request.GET.q %}
+                <a href="{% url 'favorites' %}" class="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+        
+        <p id="total_counts" class="text-sm text-gray-500">
+            Showing {{ favorites.count }} saved turf{{ favorites.count|pluralize }}
+            {% if request.GET.q %} matching "{{ request.GET.q }}"{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+    {% if favorites %}
+        <div id="favorites-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for favorite in favorites %}
+                <div class="favourite-card relative">
+                    {% include 'partials/_turf_card.html' with turf=favorite %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16 bg-white rounded-lg shadow">
+            <div class="mx-auto h-24 w-24 text-gray-400">
+                <i class="far fa-heart empty-state-icon"></i>
+            </div>
+            <h3 class="mt-2 text-xl font-semibold text-gray-700">
+                {% if request.GET.q %}
+                    No matching favorites found
+                {% else %}
+                    No Favourites Yet
+                {% endif %}
+            </h3>
+            <p class="mt-1 text-gray-500 mb-6">
+                {% if request.GET.q %}
+                    Try a different search term
+                {% else %}
+                    Save your favorite turfs to access them quickly here.
+                {% endif %}
+            </p>
+            <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <i class="fas fa-search mr-2"></i> Explore Turfs
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

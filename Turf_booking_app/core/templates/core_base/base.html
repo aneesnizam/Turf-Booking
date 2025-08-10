@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoTurfy - Book Premium Sports Turfs</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-futbol text-green-500 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">GoTurfy</span>
+                    </div>
+                {% block nav %}{% endblock %}
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                 
+                    <a href="{% url 'turfs' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
+                        Book Now
+                    </a>
+                        {% if request.user.is_owner %}
+            <a 
+              href="{% url 'dashboard_redirect' %}"
+              class="ml-4 text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+              Owner Dashboard
+            </a>
+            {% endif %}
+                    <div class="ml-4 relative flex-shrink-0">
+                        <div>
+                            <a href="{% url 'profile' %}" class="bg-white rounded-full flex text-sm hover:outline-none hover:ring-2 hover:ring-offset-2 hover:ring-green-500 cursor-pointer" id="user-menu">
+                                <span class="sr-only">Open user menu</span>
+                                <img class="h-8 w-8 rounded-full object-cover object-center"   src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}"
+                                             alt="Profile photo">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+  <footer class="bg-green-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="col-span-2">
+                <h3 class="text-xl font-bold mb-3 flex items-center">
+                    <i class="fas fa-futbol text-white text-2xl mr-2"></i>
+                    GoTurfy
+                </h3>
+                <p class="text-green-200 text-sm w-[70%]">Your premier destination for booking quality sports facilities. Play more, worry less!</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-white">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'about_us' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">About Us</a></li>
+                    <li><a href="{% url 'contact_us' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-white">Legal</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'terms_and_conditions' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Terms & Conditions</a></li>
+                    <li><a href="{% url 'privacy_policy' %}" class="text-green-200 hover:text-white text-sm transition-colors duration-200">Privacy Policy</a></li>
+                </ul>
+            </div>
+   
+        </div>
+        <div class="border-t border-green-700 mt-6 pt-4 text-center text-green-300 text-sm">
+            <p>&copy; {% now "Y" %} GoTurfy. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

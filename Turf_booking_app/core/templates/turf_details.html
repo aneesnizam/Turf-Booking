@@ -1,0 +1,964 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Turf Booking - {{ turf_detail.turf_name }}</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <style>
+    
+      .image-gallery {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .main-image {
+        grid-column: span 2;
+        height: 350px;
+        position: relative;
+      }
+      .thumbnail {
+        height: 140px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .thumbnail:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .selected-slot {
+        background-color: #10b981 !important;
+        color: white !important;
+        border-color: #10b981 !important;
+      }
+      .status-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+      }
+      .rating-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 10;
+      }
+      .map-container {
+        height: 250px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .time-slot {
+        transition: all 0.2s ease;
+      }
+      .turf-detail-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 0;
+      }
+      .turf-detail-item:last-child {
+        border-bottom: none;
+      }
+      .price-highlight {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #10b981;
+      }
+      .sport-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #f0fdf4;
+        color: #10b981;
+      }
+      .action-btn {
+        transition: all 0.2s ease;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+      <a
+        href="/turfs"
+        class="inline-flex items-center text-green-600 hover:text-green-800 mb-6 transition-colors"
+      >
+        <i class="fas fa-arrow-left mr-2"></i> Back to Turfs
+      </a>
+
+      <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+        <div class="md:flex">
+          <div class="md:w-1/2 p-6 mb-6">
+
+<!-- image-gallery -->
+
+            <div class="image-gallery">
+              {% with first_image=turf_detail.images.all.0 %}
+              <div class="main-image rounded-xl overflow-hidden relative">
+                {% if first_image %}
+                <img
+                  id="mainImage"
+                  src="{{ first_image.image.url }}"
+                  alt="{{ turf_detail.turf_name }}"
+                  class="w-full h-full object-cover transition-opacity duration-300"
+                />
+                {% else %}
+                <div
+                  class="w-full h-full bg-gray-100 flex items-center justify-center"
+                >
+                  <p class="text-gray-400">No image available</p>
+                </div>
+                {% endif %}
+                <div
+                  class="status-badge px-3 py-1 rounded-full text-sm font-medium {% if turf_detail.status == 'active' %}bg-green-100 text-green-800 {% elif turf_detail.status == 'maintenance' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {{ turf_detail.get_status_display }}
+                </div>
+                <div
+                  class="rating-badge px-3 py-1 rounded-full bg-white text-yellow-600 shadow-sm flex items-center"
+                >
+                  <i class="fas fa-star mr-1"></i>
+                  <span>{{ turf_detail.average_rating|default:"0.0" }}</span>
+                </div>
+              </div>
+              {% endwith %} {% for image in turf_detail.images.all|slice:"1:3" %}
+              <div
+                class="thumbnail rounded-lg overflow-hidden"
+                onclick="changeImage(event)"
+              >
+                <img
+                  alt="Turf Thumbnail"
+                  src="{{ image.image.url }}"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Enhanced Location Section -->
+            <div
+              class="mt-6 bg-gradient-to-br from-green-50 to-blue-50 p-5 py-6 rounded-xl shadow-sm border border-green-100"
+            >
+              <div class="flex items-start">
+                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                  <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                </div>
+                <div>
+                  <h3
+                    class="text-xl font-bold text-gray-800 mb-2 flex items-center"
+                  >
+                    Location Details
+                  </h3>
+                  {% if turf_detail.address %}
+                  <div class="space-y-2">
+                    <div class="flex items-start">
+                      <i
+                        class="fas fa-home text-green-500 mt-1 mr-2 text-sm"
+                      ></i>
+                      <p class="font-medium text-gray-700">
+                        {{ turf_detail.address }}
+                      </p>
+                    </div>
+                    <div class="flex items-start">
+                      <i
+                        class="fas fa-city text-green-500 mt-1 mr-2 text-sm"
+                      ></i>
+                      <p class="text-gray-600">
+                        {{ turf_detail.place }}, {{ turf_detail.city }}
+                      </p>
+                    </div>
+                    <div class="flex items-start">
+                      <i
+                        class="fas fa-flag text-green-500 mt-1 mr-2 text-sm"
+                      ></i>
+                      <p class="text-gray-600">
+                        {{ turf_detail.district }} - {{ turf_detail.pincode }}
+                      </p>
+                    </div>
+                  </div>
+                  {% else %}
+                  <p class="text-gray-400">Address not available</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Opening Hours Section -->
+            <div
+              class="mt-6 bg-gradient-to-br from-purple-50 to-pink-50 p-5 py-6 rounded-xl shadow-sm border border-purple-100"
+            >
+              <div class="flex items-start">
+                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                  <i class="fas fa-clock text-purple-600 text-xl"></i>
+                </div>
+                <div class="w-full">
+                  <h3 class="text-xl font-bold text-gray-800 mb-3">
+                    Opening Hours
+                  </h3>
+
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center">
+                      <i class="fas fa-door-open text-purple-500 mr-2"></i>
+                      <span class="font-medium">Opening:</span>
+                    </div>
+                    <span
+                      class="bg-white px-3 py-1 rounded-full text-sm font-medium shadow-sm"
+                    >
+                      {{ turf_detail.opening_time|time:"g:i A" }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                      <i class="fas fa-door-closed text-purple-500 mr-2"></i>
+                      <span class="font-medium">Closing:</span>
+                    </div>
+                    <span
+                      class="bg-white px-3 py-1 rounded-full text-sm font-medium shadow-sm"
+                    >
+                      {{ turf_detail.closing_time|time:"g:i A" }}
+                    </span>
+                  </div>
+
+                  <div class="relative pt-1">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-xs font-medium text-purple-600">
+                        Current Time: {% now "g:i A" %}
+                      </span>
+                      <span class="text-xs font-medium text-purple-600">
+                        {% widthratio current_hour 24 100 %}% of day passed
+                      </span>
+                    </div>
+                    <div
+                      class="overflow-hidden h-2 mb-2 text-xs flex rounded-full bg-white shadow-inner"
+                    >
+                      <div
+                        style="width:{% widthratio current_hour 24 100 %}%"
+                        class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-400 to-pink-500"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="md:w-1/2 p-6 bg-gray-50">
+            <div class="sticky top-6">
+              <div class="flex justify-between items-start mb-4">
+
+<!-- Turf Details Header -->
+
+                <div>
+                  <h1 class="text-3xl font-bold text-gray-800">
+                    {{ turf_detail.turf_name }}
+                  </h1>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <div
+                      class="flex items-center text-gray-600 bg-white px-3 py-1 rounded-full shadow-sm"
+                    >
+                      <i
+                        class="fas fa-map-marker-alt text-green-500 mr-1 text-sm"
+                      ></i>
+                      <span class="text-sm">{{ turf_detail.city }}</span>
+                    </div>
+                    <div
+                      class="flex items-center text-gray-600 bg-white px-3 py-1 rounded-full shadow-sm"
+                    >
+                      <i
+                        class="fas fa-calendar-check text-green-500 mr-1 text-sm"
+                      ></i>
+                      <span class="text-sm">{{ total_bookings }} bookings</span>
+                    </div>
+                  </div>
+                </div>
+
+<!-- Share and Favorite Buttons -->
+
+                <div class="flex space-x-2">
+                  <form
+                    method="post"
+                    action="{% url 'toggle_favourite' turf_detail.id %}"
+                  >
+                    {% csrf_token %} {% if turf_detail in request.user.favourites.all %}
+                    <button
+                      id="favoriteBtn"
+                      type="submit"
+                      class="p-2 rounded-full px-3 bg-white shadow-sm text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors action-btn"
+                    >
+                      <i class="far fa-heart text-lg"></i>
+                    </button>
+                    {% else %}
+                    <button
+                      id="favoriteBtn"
+                      type="submit"
+                      class="p-2 rounded-full px-3 bg-red-50 shadow-sm text-red-500 hover:text-red-500 hover:bg-red-50 transition-colors action-btn"
+                    >
+                      <i class="fas fa-heart text-lg"></i>
+                    </button>
+                    {% endif %}
+                  </form>
+                  <button
+                    id="shareBtn"
+                    class="p-2 rounded-full h-10 w-10 bg-white shadow-sm text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors action-btn"
+                  >
+                    <i class="fas fa-share-alt text-lg"></i>
+                  </button>
+                </div>
+              </div>
+
+<!-- Available Sports Section -->
+
+              <div class="mb-6">
+                <h3
+                  class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2"
+                >
+                  Sports Available
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                  {% for sport in turf_detail.sports.all %}
+                  <div
+                    class="flex items-center bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100"
+                  >
+                    <div class="sport-icon mr-2">
+                      {% if sport.name == "Football" %}<i
+                        class="fas fa-futbol"
+                      ></i>
+                      {% elif sport.name == "Cricket" %}<i
+                        class="fas fa-baseball-bat-ball"
+                      ></i>
+                      {% elif sport.name == "Volleyball" %}<i
+                        class="fas fa-volleyball-ball"
+                      ></i>
+                      {% else %}<i class="fas fa-medal"></i>{% endif %}
+                    </div>
+                    <span class="text-sm font-medium">{{ sport.name }}</span>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+
+              <!-- Pricing -->
+              <div
+                class="mt-6 bg-white p-4 mb-6 rounded-xl shadow-sm border border-gray-100"
+              >
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="text-lg font-semibold">Pricing</h3>
+                  <div
+                    class="bg-white px-3 py-1 rounded-full shadow-md flex items-center ml-2 border-gray-300 border border-dotted"
+                  >
+                    <span class="price-highlight"
+                      >₹{{ turf_detail.cost_per_hour }}</span
+                    >
+                    <span class="text-gray-500 text-sm ml-1">/hour</span>
+                  </div>
+                </div>
+                <p class="text-gray-600 text-sm">
+                  Prices may vary for different sports and peak hours.
+                </p>
+              </div>
+
+<!-- Booking Section -->
+
+              <div
+                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+              >
+                <h3
+                  class="text-xl font-semibold mb-5 pb-2 border-b border-gray-200"
+                >
+                  Book Your Slot
+                </h3>
+
+                {% if messages %}
+                <div class="mb-4">
+                  {% for message in messages %}
+                  <div
+                    class="p-4 rounded-lg {% if message.tags == 'success' %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}"
+                    role="alert"
+                  >
+                    {{ message }}
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+
+<!-- Booking Form -->
+
+
+                <form
+                  id="booking-form"
+                  method="POST"
+                  action="{% url 'turf_details' turf_detail.id %}"
+                >
+                  {% csrf_token %}
+                  <div class="mb-4">
+                    <label
+                      for="bookingDate"
+                      class="block text-gray-700 font-medium mb-2"
+                      >Select Date</label
+                    >
+                    <input
+                      type="date"
+                      id="bookingDate"
+                      name="booking_date"
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label
+                      for="startTime"
+                      class="block text-gray-700 font-medium mb-2"
+                      >Start Time</label
+                    >
+                    <select
+                      id="startTime"
+                      name="start_time"
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                      disabled
+                    >
+                      <option value="">Select a date first</option>
+                    </select>
+                    <div
+                      id="availability-message"
+                      class="text-sm text-red-500 mt-1"
+                    ></div>
+                  </div>
+                  <div class="mb-5">
+                    <label
+                      for="duration"
+                      class="block text-gray-700 font-medium mb-2"
+                      >Duration (hours)</label
+                    >
+                    <select
+                      id="duration"
+                      name="duration"
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                      disabled
+                    >
+                      <option value="">Select a start time first</option>
+                    </select>
+                  </div>
+                  <div class="mb-5 bg-gray-50 p-3 rounded-lg text-center">
+                    <span class="text-gray-600">Total Price:</span>
+                    <span
+                      id="totalPrice"
+                      class="font-bold text-xl text-green-600"
+                      >₹0</span
+                    >
+                  </div>
+                  <button
+                    id="bookNowBtn"
+                    type="submit"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled
+                  >
+                    Book Now
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<!-- Bottom Nav -->
+
+      <div class="mt-8 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="border-b border-gray-200">
+          <nav class="flex -mb-px">
+            <button
+              onclick="switchTab('details')"
+              class="tab-button active py-4 px-6 text-center border-b-2 font-medium text-sm border-green-500 text-green-600"
+            >
+              <i class="fas fa-info-circle mr-2"></i>Details
+            </button>
+            <button
+              onclick="switchTab('gallery')"
+              class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <i class="fas fa-images mr-2"></i>Gallery
+            </button>
+            <button
+              onclick="switchTab('reviews')"
+              class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <i class="fas fa-star mr-2"></i>Reviews
+            </button>
+            <button
+              onclick="switchTab('location')"
+              class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <i class="fas fa-map-marked-alt mr-2"></i>Location
+            </button>
+          </nav>
+        </div>
+        <div class="p-6">
+
+<!-- Detail Bar -->
+
+          <div id="details" class="tab-content active">
+            <h2 class="text-2xl font-bold mb-4">About This Turf</h2>
+            <div class="space-y-4">
+              <div class="turf-detail-item">
+                <h3 class="text-lg font-semibold mb-2">Description</h3>
+                <p class="text-gray-700 leading-relaxed">
+                  {{ turf_detail.description|default:"No description provided." }}
+                </p>
+              </div>
+              <div class="turf-detail-item">
+                <h3 class="text-lg font-semibold mb-2">Facilities</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  {% for facility in turf_detail.facilities.all %}
+                  <div class="flex items-center">
+                    <i
+                      class="{{ facility.icon_class|default:'fas fa-check-circle' }} text-green-500 mr-3 w-5"
+                    ></i
+                    ><span>{{ facility.name }}</span>
+                  </div>
+                  {% empty %}
+                  <p>No facilities listed.</p>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="turf-detail-item">
+                <h3 class="text-lg font-semibold mb-2">Rules & Guidelines</h3>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                  <li>Booking must be made at least 2 hours in advance.</li>
+                  <li>Proper sports attire is required.</li>
+                  <li>Damage to property will incur charges.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+<!-- Gallery Bar -->
+
+          <div id="gallery" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4">Turf Gallery</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {% for image in turf_detail.images.all %}
+              <div class="rounded-lg overflow-hidden h-48">
+                <img
+                  src="{{ image.image.url }}"
+                  alt="Turf Image {{ forloop.counter }}"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              {% empty %}
+              <p class="text-gray-500 col-span-full">
+                No images available for this turf.
+              </p>
+              {% endfor %}
+            </div>
+          </div>
+
+<!-- Review Bar -->
+
+          <div id="reviews" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4">Customer Reviews</h2>
+            <div class="space-y-6">
+              {% for review in turf_detail.ratings.all %}
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                  {% if review.user.profile_picture %}
+                  <img
+                    src="{{ review.user.profile_picture.url }}"
+                    alt="User profile"
+                    class="w-10 h-10 object-cover rounded-full mr-3"
+                  />
+                  {% else %}
+                  <div
+                    class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user text-green-600"></i>
+                  </div>
+                  {% endif %}
+                  <div>
+                    <p class="font-medium">
+                      {{ review.user.fullname|default:review.user.email }}
+                    </p>
+                    <div class="flex items-center">
+                      {% for i in "12345" %}
+                      <i
+                        class="fas fa-star text-sm {% if forloop.counter <= review.score %}text-yellow-400{% else %}text-gray-300{% endif %}"
+                      ></i>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <p class="text-gray-700">
+                  {{ review.comment|default:"No comment provided." }}
+                </p>
+                <p class="text-sm text-gray-500 mt-2">
+                  {{ review.created_at|timesince }} ago
+                </p>
+              </div>
+              {% empty %}
+              <p class="text-gray-500">Be the first to review this turf!</p>
+              {% endfor %}
+            </div>
+          </div>
+
+<!-- Location Bar -->
+
+          <div id="location" class="tab-content">
+            <div class="max-w-md mx-auto space-y-6">
+              <h2 class="text-2xl font-bold text-center">Location & Contact</h2>
+              <div class="bg-green-50 rounded-lg p-6 text-center">
+                <i
+                  class="fas fa-map-marker-alt text-green-600 text-2xl mb-2"
+                ></i>
+                <h3 class="font-semibold text-lg">Address</h3>
+                <p class="text-gray-600 p-2">{{ turf_detail.location }}</p>
+                <a
+                  href="https://maps.google.com/?q={{ turf_detail.latitude }},{{ turf_detail.longitude }}"
+                  target="_blank"
+                  class="mt-2 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition"
+                >
+                  <i class="fas fa-directions mr-2"></i> Get Directions
+                </a>
+              </div>
+              <div class="bg-blue-50 rounded-lg p-6 text-center">
+                <i class="fas fa-phone-alt text-blue-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-lg">Contact</h3>
+                <p class="text-gray-600">{{ turf_detail.contact_number }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Confirmation Modal -->
+
+    <div
+      id="confirmation-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"
+    >
+      <div
+        id="modal-content"
+        class="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl transform transition-all duration-300 scale-95 opacity-0"
+      >
+        <button
+          class="js-modal-close absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100"
+        >
+          <i class="fas fa-times h-5 w-5"></i>
+        </button>
+        <div class="space-y-4">
+          <div class="text-center">
+            <i class="fas fa-check-circle text-green-500 text-4xl mx-auto"></i>
+            <h3 class="mt-3 text-xl font-bold text-gray-900">
+              Confirm Your Booking
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Please review your booking details below.
+            </p>
+          </div>
+          <div
+            id="booking-summary"
+            class="mt-4 space-y-3 divide-y divide-gray-200/60 rounded-lg border border-gray-200/80 bg-white p-4 text-sm text-gray-700"
+          ></div>
+          <div
+            class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-4"
+          >
+            <button
+              type="button"
+              class="js-modal-close mt-3 sm:mt-0 inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirm-booking-btn"
+              type="button"
+              class="inline-flex justify-center rounded-lg border border-transparent bg-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-green-700"
+            >
+              Confirm & Pay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // This function runs once the entire HTML document has been loaded.
+      document.addEventListener('DOMContentLoaded', function () {
+
+          // --- START: PAGE-LEVEL FUNCTIONS ---
+
+          // Tab switching functionality
+          window.switchTab = function(tabId) {
+              // Hide all tab content sections
+              document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+              // Deactivate all tab buttons
+              document.querySelectorAll(".tab-button").forEach(btn => {
+                  btn.classList.remove("active", "border-green-500", "text-green-600");
+                  btn.classList.add("border-transparent", "text-gray-500");
+              });
+
+              // Show the selected tab's content
+              document.getElementById(tabId).classList.add("active");
+              // Activate the selected tab button
+              const currentButton = document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`);
+              currentButton.classList.add("active", "border-green-500", "text-green-600");
+              currentButton.classList.remove("border-transparent", "text-gray-500");
+          };
+
+          // Image gallery: click a thumbnail to swap it with the main image
+          window.changeImage = function(event) {
+              const mainImage = document.getElementById("mainImage");
+              const thumbnailImg = event.currentTarget.querySelector('img');
+
+              // Temporarily store the source of the main image
+              const mainImageSrc = mainImage.src;
+
+              // Swap sources
+              mainImage.src = thumbnailImg.src;
+              thumbnailImg.src = mainImageSrc;
+
+              // Add a fade effect for a smooth transition
+              mainImage.style.opacity = 0;
+              setTimeout(() => { mainImage.style.opacity = 1; }, 100);
+          };
+
+          // Share Button functionality
+          const shareBtn = document.getElementById("shareBtn");
+          if (shareBtn) {
+              shareBtn.addEventListener("click", function () {
+                  // Use the modern Web Share API if available
+                  if (navigator.share) {
+                      navigator.share({
+                          title: `Check out {{ turf_detail.turf_name|escapejs }}`,
+                          text: "Book this amazing turf for your next game!",
+                          url: window.location.href,
+                      }).catch(err => console.error("Error sharing:", err));
+                  } else {
+                      // Fallback for older browsers (e.g., open WhatsApp)
+                      alert("Sharing is not supported on this browser. You can copy the URL manually.");
+                  }
+              });
+          }
+
+          // --- END: PAGE-LEVEL FUNCTIONS ---
+
+
+          // --- START: BOOKING FORM LOGIC ---
+
+          // Get all necessary elements from the document
+          const bookingForm = document.getElementById('booking-form');
+          const dateInput = document.getElementById('bookingDate');
+          const startTimeSelect = document.getElementById('startTime');
+          const durationSelect = document.getElementById('duration');
+          const totalPriceDisplay = document.getElementById('totalPrice');
+          const bookNowBtn = document.getElementById('bookNowBtn');
+          const availabilityMessage = document.getElementById('availability-message');
+
+          // Get turf-specific data passed from the Django view
+          const turfId = {{ turf_detail.id }};
+          const costPerHour = {{ turf_detail.cost_per_hour }};
+          const openingTime = "{{ turf_detail.opening_time|time:'H:i' }}";
+          const closingTime = "{{ turf_detail.closing_time|time:'H:i' }}";
+
+          // Set the minimum selectable date to today
+          const today = new Date()
+          const max_date = new Date();
+          max_date.setDate(today.getDate() + 20)
+          dateInput.min = today.toISOString().split('T')[0];;
+          dateInput.max = max_date.toISOString().split('T')[0]
+
+          // Helper function to format time from "HH:mm" to "h:mm AM/PM"
+          function formatTime(timeStr) {
+              const [hour, minute] = timeStr.split(':');
+              const h = parseInt(hour);
+              const ampm = h >= 12 ? 'PM' : 'AM';
+              const formattedHour = h % 12 || 12; // Converts "0" or "12" to "12"
+              return `${formattedHour}:${minute} ${ampm}`;
+          }
+
+          // Helper function to update the total price based on duration
+          function updatePrice() {
+              const duration = parseInt(durationSelect.value) || 0;
+              const totalCost = duration * costPerHour;
+              totalPriceDisplay.textContent = `₹${totalCost.toLocaleString()}`;
+              // Enable the 'Book Now' button only if a valid price is calculated
+              bookNowBtn.disabled = totalCost <= 0;
+          }
+
+          // Helper function to reset the form fields that depend on the date
+          function resetDependentFields() {
+              startTimeSelect.innerHTML = '<option value="">Select a date first</option>';
+              startTimeSelect.disabled = true;
+              durationSelect.innerHTML = '<option value="">Select a start time first</option>';
+              durationSelect.disabled = true;
+              availabilityMessage.textContent = '';
+              updatePrice();
+          }
+
+          // Event: When the user selects a date
+          dateInput.addEventListener('change', async function () {
+              const selectedDate = this.value;
+              resetDependentFields();
+              if (!selectedDate) return;
+
+              startTimeSelect.innerHTML = '<option>Loading slots...</option>';
+
+              try {
+                  // Fetch available time slots for the selected date from the server
+                  const response = await fetch(`/ajax/check-availability/${turfId}/?date=${selectedDate}`);
+                  if (!response.ok) throw new Error('Network response was not ok.');
+
+                  const data = await response.json();
+
+                  startTimeSelect.innerHTML = ''; // Clear loading message
+                  if (data.available_slots && data.available_slots.length > 0) {
+                      startTimeSelect.disabled = false;
+                      startTimeSelect.innerHTML = '<option value="">Select a start time</option>';
+                      // Populate the start time dropdown with available slots
+                      data.available_slots.forEach(slot => {
+                          const option = document.createElement('option');
+                          option.value = slot;
+                          option.textContent = formatTime(slot);
+                          startTimeSelect.appendChild(option);
+                      });
+                  } else {
+                      // If no slots are available, show a message
+                      availabilityMessage.textContent = 'This turf is fully booked for the selected day.';
+                      startTimeSelect.innerHTML = '<option>No slots available</option>';
+                  }
+              } catch (error) {
+                  console.error('Error fetching slots:', error);
+                  availabilityMessage.textContent = 'Could not fetch availability. Please try again.';
+                  startTimeSelect.innerHTML = '<option>Error loading slots</option>';
+              }
+          });
+
+          // Event: When the user selects a start time
+          startTimeSelect.addEventListener('change', function () {
+              const selectedStartTime = this.value;
+              durationSelect.innerHTML = '<option value="">Select a duration</option>';
+              durationSelect.disabled = true;
+              updatePrice(); // Reset price
+              if (!selectedStartTime) return;
+
+              const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
+              const [openHour, ] = openingTime.split(':').map(Number);
+              const [closeHour, closeMinute] = closingTime.split(':').map(Number);
+
+              // Calculate the total available time from the selected start time
+              let closingTimeInMinutes = closeHour * 60 + closeMinute;
+              // Handle overnight schedules (e.g., closes at 2 AM)
+              if (closeHour < openHour && startHour >= openHour) {
+                  closingTimeInMinutes += 24 * 60; // Add 24 hours
+              }
+
+              const startTimeInMinutes = startHour * 60 + startMinute;
+              const remainingMinutes = closingTimeInMinutes - startTimeInMinutes;
+
+              // Populate the duration dropdown (up to 4 hours)
+              durationSelect.disabled = false;
+              for (let i = 1; i <= 4; i++) {
+                  if ((i * 60) <= remainingMinutes) {
+                      const option = document.createElement('option');
+                      option.value = i;
+                      option.textContent = `${i} hour${i > 1 ? 's' : ''}`;
+                      durationSelect.appendChild(option);
+                  }
+              }
+          });
+
+          // Event: When the user selects a duration, update the price
+          durationSelect.addEventListener('change', updatePrice);
+
+          // --- END: BOOKING FORM LOGIC ---
+
+
+          // --- START: CONFIRMATION MODAL LOGIC ---
+
+          // Get modal elements
+          const confirmationModal = document.getElementById('confirmation-modal');
+          const modalContent = document.getElementById('modal-content');
+          const bookingSummary = document.getElementById('booking-summary');
+          const confirmBtn = document.getElementById('confirm-booking-btn');
+          const modalCloseBtns = document.querySelectorAll('.js-modal-close');
+
+          // Function to show the modal with a smooth animation
+          function showModal() {
+              confirmationModal.classList.remove('hidden');
+              confirmationModal.classList.add('flex');
+              // A tiny delay allows the 'display' property to apply before the transition starts
+              setTimeout(() => {
+                  confirmationModal.classList.add('opacity-100');
+                  modalContent.classList.remove('opacity-0', 'scale-95');
+                  modalContent.classList.add('opacity-100', 'scale-100');
+              }, 10);
+          }
+
+          // Function to hide the modal
+          function hideModal() {
+              confirmationModal.classList.remove('opacity-100');
+              modalContent.classList.add('opacity-0', 'scale-95');
+              // Wait for the animation to finish before setting display to none
+              setTimeout(() => {
+                  confirmationModal.classList.add('hidden');
+              }, 300); // Must match the duration in Tailwind classes
+          }
+
+          // Event: When the user clicks the main "Book Now" button
+          bookNowBtn.addEventListener('click', function(event) {
+              // Prevent the form from submitting immediately
+              event.preventDefault();
+
+              // Get the selected details to show in the summary
+              const dateValue = dateInput.value;
+              const startTimeValue = startTimeSelect.options[startTimeSelect.selectedIndex].text;
+              const durationValue = durationSelect.options[durationSelect.selectedIndex].text;
+              const priceValue = totalPriceDisplay.textContent;
+
+              // Populate the summary details inside the modal
+              bookingSummary.innerHTML = `
+                  <div class="flex justify-between"><strong class="text-gray-600">Turf:</strong> <span class="font-medium">{{ turf_detail.turf_name|escapejs }}</span></div>
+                  <div class="flex justify-between"><strong class="text-gray-600">Date:</strong> <span class="font-medium">${dateValue}</span></div>
+                  <div class="flex justify-between"><strong class="text-gray-600">Start Time:</strong> <span class="font-medium">${startTimeValue}</span></div>
+                  <div class="flex justify-between"><strong class="text-gray-600">Duration:</strong> <span class="font-medium">${durationValue}</span></div>
+                  <div class="flex justify-between border-t pt-3 mt-3"><strong class="text-gray-800 text-lg">Total Price:</strong> <span class="font-bold text-lg text-green-600">${priceValue}</span></div>
+              `;
+
+              // Show the confirmation modal
+              showModal();
+          });
+
+          // Event: When the final "Confirm & Pay" button is clicked, submit the form
+          confirmBtn.addEventListener('click', function() {
+              bookingForm.submit();
+          });
+
+          // Event: Add close functionality to all buttons with the 'js-modal-close' class
+          modalCloseBtns.forEach(btn => btn.addEventListener('click', hideModal));
+
+          // Event: Also close the modal if the user clicks on the dark background overlay
+          confirmationModal.addEventListener('click', function(event) {
+              if (event.target === confirmationModal) {
+                  hideModal();
+              }
+          });
+
+      });
+    </script>
+  </body>
+</html>

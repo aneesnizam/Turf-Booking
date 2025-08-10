@@ -1,0 +1,59 @@
+{% extends 'core_base/main_layout.html' %}
+{% load static %}
+
+{% block title %} Cancellation Policy - GoTurfy{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Cancellation & Refund Policy</h1>
+        <p class="text-gray-500 mt-2">Last Updated: {% now "F d, Y" %}</p>
+    </div>
+
+    <div class="prose lg:prose-lg max-w-none text-gray-700">
+        <p class="lead">Our goal is to be as flexible as possible while being fair to both our players and our turf partners who manage the facilities. Please read the following cancellation policy carefully.</p>
+        
+        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Standard Cancellation Policy</h2>
+        <p>Our refund policy is based on the time of cancellation before the scheduled start time of your booking:</p>
+        <ul>
+            <li><strong>Full Refund:</strong> Cancellations made <strong>more than 48 hours</strong> before the scheduled booking time are eligible for a 100% refund to the original payment method.</li>
+            <li><strong>Partial Refund / Credit:</strong> Cancellations made between <strong>24 and 48 hours</strong> before the booking time are eligible for a 50% refund or a 100% credit to your account for a future booking.</li>
+            <li><strong>No Refund:</strong> Cancellations made <strong>less than 24 hours</strong> before the booking time are not eligible for any refund or credit. This is because it is difficult for our turf partners to find a replacement booking on such short notice.</li>
+            <li><strong>No-Shows:</strong> If you do not arrive for your booking, you will not be eligible for any refund or credit.</li>
+        </ul>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">How to Cancel a Booking</h2>
+        <p>To cancel your booking, please follow these steps:</p>
+        <ol>
+            <li>Log in to your account on our website.</li>
+            <li>Navigate to the "My Bookings" or "My Account" section.</li>
+            <li>Find the booking you wish to cancel and click the "Cancel Booking" button.</li>
+            <li>Follow the on-screen prompts to confirm your cancellation. Your eligibility for a refund or credit will be displayed automatically based on this policy.</li>
+        </ol>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Special Circumstances</h2>
+        
+        <h3>Bad Weather Conditions</h3>
+        <p>Player safety is our priority. In the event of heavy rain, lightning, or other severe weather conditions that make playing unsafe, the following applies:</p>
+        <ul>
+            <li>If the turf owner decides to close the facility, you will be notified and offered a <strong>full refund or the option to reschedule</strong> your booking at no additional cost.</li>
+            <li>If the weather is uncertain and you decide not to play, the standard cancellation policy will apply. We recommend contacting the turf owner directly to inquire about the pitch condition if you are unsure.</li>
+        </ul>
+
+        <h3>Cancellation by Turf Owner</h3>
+        <p>In the rare event that a turf owner needs to cancel your confirmed booking (e.g., for emergency maintenance), you will be contacted immediately. You will be offered the choice of a <strong>full refund or a rescheduled booking</strong> at a mutually convenient time.</p>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Refund Processing</h2>
+        <p>Once a refund is initiated, please allow <strong>5-7 business days</strong> for the amount to reflect in your original payment account. The exact time may vary depending on your bank or payment provider.</p>
+        
+        <div class="mt-8 p-4 bg-blue-50 border-l-4 border-blue-400 text-blue-800">
+            <p class="font-bold">Please Note:</p>
+            <p>While this is our standard platform policy, some turf owners may have slightly different terms listed on their specific turf detail page. The policy listed on the turf's page at the time of booking will take precedence.</p>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Contact Us</h2>
+        <p>If you have any questions about our cancellation policy, please do not hesitate to <a href="{% url 'contact_us' %}" class="text-green-600 hover:underline">contact us</a>.</p>
+
+    </div>
+</div>
+{% endblock %}

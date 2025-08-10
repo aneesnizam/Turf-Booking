@@ -1,0 +1,287 @@
+{% extends 'core_base/base.html' %} {% load static %} 
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Dashboard Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Manage your turf facilities and bookings
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0">
+        <a href="{% url 'turf_register' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-plus mr-2"></i> Add New Turf
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+            <i class="fas fa-calendar-check text-white text-xl"></i>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+              Today's Bookings
+            </dt>
+            <dd class="flex items-baseline">
+              <div class="text-2xl font-semibold text-gray-900">12</div>
+            </dd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+            <i class="fas fa-rupee-sign text-white text-xl"></i>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+              Today's Revenue
+            </dt>
+            <dd class="flex items-baseline">
+              <div class="text-2xl font-semibold text-gray-900">₹8,400</div>
+            </dd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+            <i class="fas fa-futbol text-white text-xl"></i>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+              Active Turfs
+            </dt>
+            <dd class="flex items-baseline">
+              <div class="text-2xl font-semibold text-gray-900">{{ active_counts }}</div>
+            </dd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+            <i class="fas fa-star text-white text-xl"></i>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+              Average Rating
+            </dt>
+            <dd class="flex items-baseline">
+              <div class="text-2xl font-semibold text-gray-900">4.7</div>
+              <span class="ml-2 text-sm font-medium text-gray-500">/ 5</span>
+            </dd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Turf Management Section -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-medium text-gray-900">Your Turfs</h2>
+      <div class="flex space-x-2">
+        <button class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-filter mr-1"></i> Filter
+        </button>
+        <button class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-sort mr-1"></i> Sort
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Turf Name
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Bookings
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Revenue
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Rating
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for turf in request.user.turfs.all %}
+            <!-- Turf 1 -->
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    {% with first_image=turf.images.all.0 %}
+                    {% if first_image %}
+                     <img class="h-10 w-10 rounded-full object-cover" src="{{first_image.image.url}}" alt="">
+                    {% else %}
+                    <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="">
+                    {% endif %}
+                    {% endwith %}
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{turf.turf_name}}</div>
+                    <div class="text-sm text-gray-500">{{turf.place}}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if turf.status == 'active' %} bg-green-100 text-green-800 {% elif turf.status == 'maintenance' %} bg-yellow-100 text-yellow-800 {% else %} bg-red-100 text-red-800 {% endif %} ">
+                  {{turf.status}}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                5 today
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                ₹3,500
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <i class="fas fa-star text-yellow-400"></i>
+                  <span class="ml-1 text-sm text-gray-500">4.8</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-green-600 hover:text-green-900 mr-3"><i class="fas fa-edit"></i></a>
+                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-chart-line"></i></a>
+                <a href="#" class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i></a>
+              </td>
+            </tr>
+{% endfor %}
+           
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Bookings Section -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-medium text-gray-900">Recent Bookings</h2>
+      <a class="text-sm text-green-600 hover:text-green-800">
+        View All <i class="fas fa-arrow-right ml-1"></i>
+      </a>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <ul class="divide-y divide-gray-200">
+        
+        <!-- Booking 1 -->
+        <li class="hover:bg-gray-50">
+          <div class="px-4 py-4 sm:px-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
+                  <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="">
+                </div>
+                <div class="ml-4">
+                  <div class="text-lg font-medium text-gray-900"> Football Arena</div>
+                  <div class="text-sm text-gray-500 mt-1">
+                    <span class="inline-flex items-center">
+                      <i class="fas fa-user mr-1.5"></i> sabir Kumar
+                    </span>
+                    <span class="inline-flex items-center ml-3">
+                      <i class="fas fa-calendar-day mr-1.5"></i> Today, 5:00 PM - 7:00 PM
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
+                <div class="text-right">
+                  <div class="text-lg font-bold text-gray-900">₹1600</div>
+                  <div class="text-sm text-green-600 font-medium">
+                    <i class="fas fa-check-circle mr-1"></i> Confirmed
+                  </div>
+                </div>
+                <div class="mt-4 sm:mt-0 flex space-x-3">
+                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-receipt mr-2"></i> Invoice
+                  </button>
+                  <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-phone mr-2"></i> Contact
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Booking 2 -->
+        <!-- <li class="hover:bg-gray-50">
+          <div class="px-4 py-4 sm:px-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
+                  <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1605&q=80" alt="">
+                </div>
+                <div class="ml-4">
+                  <div class="text-lg font-medium text-gray-900">Cricket Masters</div>
+                  <div class="text-sm text-gray-500 mt-1">
+                    <span class="inline-flex items-center">
+                      <i class="fas fa-user mr-1.5"></i> Sunil Gavaskar
+                    </span>
+                    <span class="inline-flex items-center ml-3">
+                      <i class="fas fa-calendar-day mr-1.5"></i> Tomorrow, 3:00 PM - 5:00 PM
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
+                <div class="text-right">
+                  <div class="text-lg font-bold text-gray-900">₹2400</div>
+                  <div class="text-sm text-yellow-600 font-medium">
+                    <i class="fas fa-clock mr-1"></i> Pending
+                  </div>
+                </div>
+                <div class="mt-4 sm:mt-0 flex space-x-3">
+                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-check mr-2"></i> Approve
+                  </button>
+                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-times mr-2"></i> Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li> -->
+      </ul>
+    </div>
+  </div>
+
+
+
+</div>
+{% endblock %}

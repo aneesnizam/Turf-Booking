@@ -1,0 +1,334 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore All Sports | GoTurfy</title>
+       <meta name="description" content="Your turf booking partner" />
+    <meta
+      name="keywords"
+      content="turf booking, football turf, sports slots, online turf booking"
+    />
+    <meta name="author" content="Turfzio" />
+   <link rel="icon" type="image/png" href="{% static 'img/logo-modified.png' %}" />
+ <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sport-card:hover .sport-image {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header Section -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-800">Explore All Sports</h1>
+            <p class="text-gray-600 mt-2">Discover your perfect game across our premium venues</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <!-- Search and Filter Section -->
+        <!-- <div class="mb-12 bg-white rounded-xl shadow-md p-6">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" placeholder="Search sports..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div class="w-full md:w-64">
+                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option>All Categories</option>
+                        <option>Team Sports</option>
+                        <option>Racket Sports</option>
+                        <option>Fitness Activities</option>
+                        <option>Water Sports</option>
+                        <option>Combat Sports</option>
+                    </select>
+                </div>
+                <button class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg transition duration-300">
+                    Search
+                </button>
+            </div>
+        </div> -->
+
+        <!-- Sports Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <!-- Football -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Football" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Football</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">The world's most popular team sport with 5-a-side, 7-a-side, and full pitch options available.</p>
+                    <!-- <div class="flex justify-between items-center">
+                        <span class="font-bold text-green-600">120+ Venues</span>
+                        <a href="#" class="text-green-600 font-semibold hover:text-green-700">Explore →</a>
+                    </div> -->
+                </div>
+            </div>
+
+            <!-- Cricket -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Cricket" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Cricket</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Play with turf wickets, practice nets, and bowling machines at professional cricket grounds.</p>
+                   
+                </div>
+            </div>
+
+            <!-- Badminton -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="{% static 'img/badminton_player.jpeg' %}" 
+                         alt="Badminton" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Badminton</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Fast-paced racket sport with indoor courts, AC facilities, and professional-grade shuttlecocks.</p>
+                   
+                </div>
+            </div>
+
+            <!-- Tennis -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Tennis" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Tennis</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Clay, grass, and hard courts available with coaching options and equipment rental.</p>
+                  
+                </div>
+            </div>
+
+          
+            <!-- Squash -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.pexels.com/photos/1432039/pexels-photo-1432039.jpeg?auto=compress&cs=tinysrgb&w=600" 
+                         alt="Squash" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Squash</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">High-intensity racket sport with glass-back courts and equipment rental available.</p>
+                 
+                </div>
+            </div>
+
+            <!-- Volleyball -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Volleyball" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Volleyball</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Indoor courts and beach volleyball options with proper nets and boundary markings.</p>
+                   
+                </div>
+            </div>
+
+            <!-- Swimming -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&cs=tinysrgb&w=600" 
+                         alt="Swimming" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Swimming</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Olympic-sized pools, learner pools, and diving facilities with trained lifeguards.</p>
+                  
+                </div>
+            </div>
+  <!-- Basketball -->
+              <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Basketball" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Basketball</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Indoor and outdoor courts with proper markings and professional-grade hoops.</p>
+                    
+                </div>
+            </div>
+
+            <!-- Table Tennis -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1519861531473-9200262188bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Table Tennis" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Table Tennis</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Professional tables with high-quality paddles and balls available for rent.</p>
+                   
+                </div>
+            </div>
+
+            <!-- Hockey -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1587280501635-a19de238a81e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Hockey" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Hockey</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Turf fields with proper markings and goal posts for field hockey enthusiasts.</p>
+                   
+                </div>
+            </div>
+
+            <!-- Rugby -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1603993097397-89c963e325c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Rugby" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Rugby</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Properly marked rugby fields with goal posts and protective gear available.</p>
+                  
+                </div>
+            </div>
+
+            <!-- Athletics -->
+            <div class="sport-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div class="overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1543351611-58f69d7c1781?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                         alt="Athletics" 
+                         class="w-full h-48 object-cover sport-image transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold mb-2">Athletics</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Running tracks, jumping pits, and throwing circles for track and field events.</p>
+                  
+                </div>
+            </div>
+        </div>
+
+        <!-- View More Button -->
+      
+    </main>
+
+    <!-- Categories Section -->
+    <section class="bg-white py-16">
+        <div class="container mx-auto px-6">
+            <!-- <h2 class="text-2xl font-bold text-center mb-12">Browse by Category</h2> -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <a href="#" class="category-card bg-gray-50 hover:bg-green-50 rounded-lg p-6 text-center transition duration-300 border border-gray-200 hover:border-green-300">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold">Team Sports</h3>
+                </a>
+                <a href="#" class="category-card bg-gray-50 hover:bg-green-50 rounded-lg p-6 text-center transition duration-300 border border-gray-200 hover:border-green-300">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold">Racket Sports</h3>
+                </a>
+                <a href="#" class="category-card bg-gray-50 hover:bg-green-50 rounded-lg p-6 text-center transition duration-300 border border-gray-200 hover:border-green-300">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold">Fitness</h3>
+                </a>
+                <a href="#" class="category-card bg-gray-50 hover:bg-green-50 rounded-lg p-6 text-center transition duration-300 border border-gray-200 hover:border-green-300">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold">Combat Sports</h3>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-green-600 text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-6">Ready to Play Your Favorite Sport?</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">Join thousands of players who book sports venues through our platform every day.</p>
+            <a href="{% url 'landing' %}" class="px-8 py-4 bg-white text-green-600 font-bold rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
+                Get Started Now - It's Free
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">SportsTurf</h3>
+                    <p class="text-gray-400">Book premium sports venues across the country with just a few clicks.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Sports</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Football</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Cricket</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Badminton</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Tennis</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Careers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Safety</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Cancellation Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
+                <p>© 2023 SportsTurf. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

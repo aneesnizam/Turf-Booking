@@ -1,0 +1,121 @@
+<article id="main-con" class="bg-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition">
+  <div class="relative">
+    {% with first_image=turf.images.all.0 %}
+      {% if first_image %}
+        <img src="{{ first_image.image.url }}" alt="{{ turf.turf_name }}"
+             class="w-full h-44 object-cover rounded-t-xl" />
+      {% else %}
+        <div class="w-full h-44 bg-gray-100 flex items-center justify-center rounded-t-xl">
+          <p class="text-gray-400">No image available</p>
+        </div>
+      {% endif %}
+    {% endwith %}
+    
+    <!-- Rating Badge -->
+    <div class="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+      <i class="fas fa-star mr-1 text-yellow-300"></i>{{ turf.avg_score|floatformat:1 }}
+    </div>
+    
+    <!-- Favorite Button -->
+{% if turf.id %}
+  <div class="absolute top-3 right-3">
+    <form method="post" action="{% url 'toggle_favourite' turf.id %}">
+      {% csrf_token %}
+      {% if turf in request.user.favourites.all %}
+        <button
+          type="submit"
+          class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-md text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <i class="fas fa-heart text-base"></i>
+        </button>
+      {% else %}
+        <button
+          type="submit"
+          class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-md text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <i class="far fa-heart text-base"></i>
+        </button>
+      {% endif %}
+    </form>
+  </div>
+{% endif %}
+
+    
+    <!-- Open Now Badge -->
+  {% if turf.status == 'active' %}
+  <div class="absolute bottom-3 right-3 bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full shadow">
+    <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse inline-block"></span>
+    Open Now
+  </div>
+
+{% elif turf.status == 'maintenance' %}
+  <div class="absolute bottom-3 right-3 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full shadow">
+    <span class="w-2 h-2 bg-yellow-500 rounded-full mr-1.5 animate-pulse inline-block"></span>
+    {{ turf.get_status_display }}
+  </div>
+
+{% elif turf.status == 'closed' %}
+  <div class="absolute bottom-3 right-3 bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full shadow">
+    <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5 inline-block"></span>
+    {{ turf.get_status_display }}
+  </div>
+
+{% endif %}
+  </div>
+  
+  <div class="p-4">
+    <h3 class="text-lg font-bold text-gray-900 hover:text-green-600 mb-2">{{ turf.turf_name }}</h3>
+    
+    <div class="text-gray-600 flex items-center mb-2">
+      <i class="fas fa-map-marker-alt mr-2 text-green-500"></i>
+      <span class="text-sm">{{ turf.place }}, {{ turf.city }}</span>
+    </div>
+    
+    <div class="flex flex-wrap gap-2 mb-3">
+      {% for sport in turf.sports.all|slice:":3" %}
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border">
+        {{ sport.name }}
+      </span>
+      {% endfor %}
+      {% if turf.sports.count > 3 %}
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border">
+        +{{ turf.sports.count|add:"-3" }}
+      </span>
+      {% endif %}
+    </div>
+{% if turf.distance is not None %}
+  <div class="mt-2 flex items-center text-sm text-gray-600 mb-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto mr-1.5 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="font-medium">~{{ turf.distance|floatformat:1 }} km away</span>
+  </div>
+{% endif %}
+
+
+
+    <div class="flex items-center text-gray-600 mb-4">
+      <i class="far fa-clock mr-2 text-green-500"></i>
+      <span class="text-sm">{{ turf.opening_time|time:"g:i A" }} - {{ turf.closing_time|time:"g:i A" }}</span>
+    </div>
+    
+    <div class="flex justify-between items-center border-t pt-3">
+      <div>
+        <span class="text-lg font-bold text-gray-900">₹{{ turf.cost_per_hour }}</span>
+        <span class="text-sm text-gray-500 ml-1">/ hour</span>
+      </div>
+     {% if turf.id %}
+  <a href="{% url 'turf_details' turf.id %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition">
+    Book Now <i class="fas fa-arrow-right ml-2 text-xs"></i>
+  </a>
+{% else %}
+  <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-gray-400 cursor-not-allowed">
+    Book Now
+  </span>
+{% endif %}
+
+
+    </div>
+  </div>
+</article>  

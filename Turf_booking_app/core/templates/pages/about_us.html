@@ -1,0 +1,63 @@
+{% extends 'core_base/main_layout.html' %}
+
+{% block content %}
+<div class="bg-gray-50">
+    <div class="container mx-auto px-4 py-16">
+        
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">About Us</h1>
+            <p class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">Connecting players and communities to the best sports facilities, one booking at a time.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
+            <div>
+                <img src="https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg" alt="Football on a turf" class="rounded-xl shadow-lg w-full">
+            </div>
+            <div>
+                <h2 class="text-3xl font-semibold text-gray-800 mb-4">Our Mission</h2>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    Born from a deep-seated passion for local sports, [Your Website Name] was created to solve a simple problem: booking a turf should be easy, fast, and transparent. We saw friends and teammates struggle to find and book quality pitches, wasting time on phone calls and uncertain reservations.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    Our mission is to empower both players and turf owners by creating a seamless digital bridge. We provide a reliable platform for players to discover and book facilities instantly, and for turf owners to manage their venues efficiently and reach a wider audience.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white p-10 rounded-xl shadow-md mb-20">
+            <h2 class="text-3xl font-semibold text-gray-800 text-center mb-8">What We Offer</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="p-4">
+                    <div class="text-green-500 mb-3 inline-block">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Easy Booking</h3>
+                    <p class="text-gray-600">Find and book your preferred turf in just a few clicks with our real-time availability checker and secure payment system.</p>
+                </div>
+                <div class="p-4">
+                    <div class="text-green-500 mb-3 inline-block">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Verified Venues</h3>
+                    <p class="text-gray-600">We partner with the best turf owners to ensure every venue listed meets our standards for quality, safety, and amenities.</p>
+                </div>
+                <div class="p-4">
+                    <div class="text-green-500 mb-3 inline-block">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21v-1a6 6 0 00-1.78-4.125"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Community Focus</h3>
+                    <p class="text-gray-600">We are more than a booking platform; we are a community for sports lovers. Join us to stay active, connected, and passionate about the game.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2 class="text-3xl font-semibold text-gray-800">Ready to Play?</h2>
+            <p class="text-lg text-gray-600 mt-2 mb-6">Your next game is just a booking away.</p>
+            <a href="{% url 'turfs' %}" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition duration-300">
+                Book a Turf Now
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

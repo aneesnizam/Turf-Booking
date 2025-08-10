@@ -1,0 +1,220 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Turf Owner Registration{% endblock %}
+
+{% block banner %}
+<img
+  src="{% static 'img/turf_bg.jpeg' %}"
+  class="w-full h-full inline-block rounded-3xl"
+  alt=""
+/>
+{% endblock %}
+
+{% block form %}
+<h1 class="text-center font-bold mb-[10px] text-[min(10vh,30px)]">
+  Create Your Account
+</h1>
+<form
+  action=""
+  method="POST"
+  class="flex justify-center flex-col w-full items-stretch"
+>
+  {% csrf_token %}
+
+{% if form.errors %}
+    <div class="mb-6 rounded-lg bg-red-50 p-4 ring-1 ring-red-100">
+        <div class="flex items-start gap-3">
+            <!-- Warning icon -->
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+            
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-red-800">There were errors with your submission:</h3>
+                
+                <ul class="list-inside space-y-1.5 text-sm text-red-700">
+                    {% for field, error_list in form.errors.items %}
+                        {% for error in error_list %}
+                            <li class="flex items-start gap-1.5">
+                                <span class="mt-0.5 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-red-600"></span>
+                                <span>
+                                    {% if field != '__all__' %}
+                                        <strong class="font-semibold">{{ field|title }}:</strong>
+                                    {% endif %}
+                                    {{ error }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endif %}
+  <!-- User Type Selection -->
+  <div class="mb-4">
+    <label class="mb-[3px] font-[600] block">Registering as:</label>
+    <div class="flex gap-4">
+   
+      <label class="flex items-center cursor-pointer">
+        <input 
+          type="radio" 
+          name="user_type" 
+          value="user" 
+          class="hidden peer"
+           checked
+        >
+        <div class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 peer-checked:bg-emerald-500 peer-checked:text-white transition-all">
+          Regular User
+        </div>
+      </label>
+         <label class="flex items-center cursor-pointer">
+        <input 
+          type="radio" 
+          name="user_type" 
+          value="owner" 
+          class="hidden peer" 
+         
+        >
+        <div class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 peer-checked:bg-emerald-500 peer-checked:text-white transition-all">
+          Turf Owner
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Full Name -->
+  <label for="fullname" class="mb-[3px] font-[600]">Full Name</label>
+  <input
+    type="text"
+    id="fullname"
+    name="fullname"
+    placeholder="Enter your full name"
+    class="input_fields"
+    required
+  />
+ 
+
+
+  <!-- Email -->
+  <label for="email" class="mb-[3px] font-[600]">Email</label>
+  <input
+    type="email"
+    id="email"
+    name="email"
+    placeholder="Enter your email"
+    class="input_fields"
+    required
+  />
+<!-- Place Field -->
+<div class="relative mb-4" id="place-field">
+  <label for="place" class="mb-[3px] font-[600]">Location</label>
+  <div class="flex gap-2 items-start"> <!-- Changed from items-stretch to items-center -->
+    <input
+      type="text"
+      id="place"
+      name="location"
+      placeholder="Type your city or hometown"
+      class="input_fields flex-grow h-10 px-3 py-2 border rounded-lg" 
+      autocomplete="off"
+      required
+    />
+    <button
+      type="button"
+      id="fetch-location"
+      class="px-4 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-200 ease-in-out flex items-center " 
+    >
+      Get
+    </button>
+  </div>
+  <ul
+    id="autocomplete-results"
+    class="absolute bg-white border rounded shadow mt-1 w-full max-h-[200px] overflow-auto z-50 hidden"
+  ></ul>
+</div>
+
+          <!-- hidden -->
+
+          <input type="hidden" name="latitude" id="latitude" />
+          <input type="hidden" name="longitude" id="longitude" />
+
+  <!-- Password -->
+  <label for="password" class="mb-[3px] font-[600]">Password</label>
+  <input
+    type="password"
+    id="password"
+    name="password1"
+    placeholder="Create a password"
+    class="input_fields"
+    required
+  />
+
+  <label for="confirm-password" class="mb-[3px] font-[600]">Confirm Password</label>
+  <input
+    type="password"
+    id="confirm-password"
+    name="password2"
+    placeholder="Confirm password"
+    class="input_fields"
+    required
+  />
+  
+  <!-- Phone Number -->
+  <label for="phone" class="mb-[3px] font-[600]">Phone Number</label>
+  <input
+    type="tel"
+    id="phone"
+    name="phone"
+    placeholder="Enter your phone number"
+    class="input_fields"
+    required
+  />
+
+
+
+  <button type="submit" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">
+    Register
+  </button>
+</form>
+<h6 class="text-center text-[13px] mt-2">Already have an account? <a href="{% url 'user_login' %}" class="font-bold pl-1 text-emerald-700 hover:text-emerald-800">Login Here</a></h6>
+
+<script>
+  document.getElementById("fetch-location").addEventListener("click", () => {
+    const query = document.getElementById("place").value;
+    if (!query.trim()) return;
+
+    fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const list = document.getElementById("autocomplete-results");
+        list.innerHTML = "";
+
+        if (data.length === 0) {
+          list.classList.add("hidden");
+          return;
+        }
+
+        data.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item.display_name;
+          li.className =
+            "px-3 py-2 cursor-pointer hover:bg-emerald-100 border-b";
+          li.onclick = () => {
+            document.getElementById("place").value = item.display_name;
+            document.getElementById("latitude").value = item.latitude || "";
+            document.getElementById("longitude").value = item.longitude || "";
+            
+            list.classList.add("hidden");
+          };
+          list.appendChild(li);
+        });
+
+        list.classList.remove("hidden");
+      })
+      .catch((error) => {
+        console.error("Error fetching autocomplete:", error);
+      });
+  });
+</script>
+
+{% endblock %}

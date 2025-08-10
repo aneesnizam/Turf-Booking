@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}User Login{% endblock %}
+ {% block banner %}
+<img
+  src="{% static 'img/ball.jpeg' %}"
+  class="w-full h-full inline-block rounded-3xl"
+  alt=""
+/>{% endblock %}
+
+{% block form %}
+<h1 class="text-center font-bold mb-[10px] text-[min(10vh,30px)]">
+  User login
+</h1>
+<form
+  action=""
+  method="POST"
+  class="flex justify-center flex-col w-full items-stretch"
+>
+  {% csrf_token %}
+  <label for="email" class="mb-[3px] font-[600]">email </label>
+  <input
+    type="text"
+    id="email"
+    name="email"
+    placeholder="Enter your username or password"
+    class="input_fields"
+  />
+
+  <label for="password" class="mb-[3px] font-[600]">password </label>
+  <input
+    type="password"
+    id="password"
+    name="password"
+    placeholder="Enter your password"
+    class="input_fields"
+  />
+
+  <button type="submit" class="submit_btn">Login</button>
+</form>
+<a class="text-center text-[12px] block mt-2 text-[#03240e] " href="{% url 'forgot_password' %}">Forgot Your password?</a>
+<h6 class="text-center text-[13px] mt-2 ">Dont have an account?<a href="{% url 'user_register' %}" class="font-bold pl-1 text-violet-950">Sign Up</a></h6>
+{% endblock %}

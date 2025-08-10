@@ -1,0 +1,443 @@
+{% extends 'core_base/base.html' %}
+{% load static %}
+
+{% block nav %}
+<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+    <a href="{% url 'home' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+    <a href="{% url 'turfs' %}" class="border-green-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Turfs</a>
+    <a href="{% url 'booking' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Bookings</a>
+    <a href="{% url 'favorites' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Favourites</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+  /* Styles are kept as is */
+
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.9);
+    cursor: pointer;
+ 
+  }
+  input[type="time"]::-webkit-datetime-edit-text,
+  input[type="time"]::-webkit-datetime-edit-month-field,
+  input[type="time"]::-webkit-datetime-edit-day-field,
+  input[type="time"]::-webkit-datetime-edit-year-field {
+    color: white;
+
+  }
+</style>
+
+<section class="bg-gradient-to-br from-green-300 to-green-700 text-white py-16 backdrop-blur-sm">
+
+  <div class="max-w-7xl mx-auto px-4 text-center">
+    <h1 class="text-4xl font-bold mb-4">Find Your Perfect Turf</h1>
+    <p class="text-xl mb-8">Discover and book premium sports facilities in your area</p>
+
+    <form method="get" class="grid grid-cols-1 md:grid-cols-7 gap-4 max-w-4xl mx-auto">
+      <div class="md:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fas fa-map-marker-alt text-white/80"></i>
+        </div>
+        <input type="text" name="location" placeholder="Location (City, Area)"
+          class="block w-full pl-10 pr-3 py-3 border border-white/30 text-white bg-white/10 rounded-md placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white focus:bg-white/20 transition"
+          value="{{ request.GET.location }}" />
+      </div>
+      <div class="md:col-span-2 relative" id="sportsDropdown">
+        <div id="sportsToggle" class="w-full h-12 cursor-pointer pl-10 pr-3 flex items-center border border-white/30 text-white bg-white/10 rounded-md hover:bg-white/20 relative"
+            aria-label="Select sports dropdown" role="button" tabindex="0">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                <i class="fas fa-running text-white/80"></i>
+            </div>
+            <span id="selectedSportsText" class="truncate">Select Sports</span>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <i class="fas fa-chevron-down text-white/80 transition-transform" id="dropdownArrow"></i>
+            </div>
+        </div>
+
+        <div id="sportsOptions"
+            class="absolute z-10 mt-1 w-full bg-green-700/90 backdrop-blur-sm border border-white/30 rounded-md shadow-lg overflow-hidden hidden">
+            <div class="max-h-60 overflow-y-auto py-1">
+                {% for sport in all_sports %}
+                <label class="flex items-center px-4 py-2 hover:bg-green-600/80 cursor-pointer">
+                    <input type="checkbox" name="sports" value="{{ sport.name }}"
+                        class="rounded border-white/50 bg-white/10 text-green-500 focus:ring-green-500"
+                        {% if sport.name in selected_sports %}checked{% endif %}>
+                    <span class="ml-3 text-white">{{ sport.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+      </div>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fas fa-clock text-white/80"></i>
+        </div>
+        <input type="time" name="start_time"
+          class="block w-full pl-10 pr-3 py-3 border border-white/30 text-white bg-white/10 rounded-md placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white focus:bg-white/20 transition"
+          value="{{ request.GET.start_time }}">
+      </div>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fas fa-clock text-white/80"></i>
+        </div>
+        <input type="time" name="end_time"
+          class="block w-full pl-10 pr-3 py-3 border border-white/30 text-white bg-white/10 rounded-md placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white focus:bg-white/20 transition"
+          value="{{ request.GET.end_time }}">
+      </div>
+      <div>
+        <button type="submit"
+          class="w-full h-full inline-flex justify-center items-center px-6 py-3 text-green-700 font-medium bg-white rounded-md hover:bg-gray-100 focus:ring-2 focus:ring-white transition">
+          <i class="fas fa-search mr-2"></i> Search
+        </button>
+      </div>
+    </form>
+    <a href="{% url 'turfs' %}"
+   class="inline-flex items-center mt-4 px-6 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+   </svg>
+   Reset
+</a>
+  </div>
+</section>
+
+<div class="bg-gray-100 py-6">
+  <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row md:justify-between items-center">
+    <p id="total_counts" class="text-sm text-gray-500 mb-2 md:mb-0">Showing {{ all_turfs|length }} results</p>
+    
+    <form id="sort-form" method="get" class="flex items-center space-x-4 border border-dotted rounded-md">
+      <select name="sort" aria-label="Sort by"
+        class="pl-3 pr-10 py-2 text-base border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+        <option value="" {% if not request.GET.sort %}selected{% endif %}>Sort by: Recommended</option>
+        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+        <option value="rating_high" {% if request.GET.sort == 'rating_high' %}selected{% endif %}>Rating: High to Low</option>
+      </select>
+    </form>
+  </div>
+</div>
+
+<div id="turf-list" class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  {% for turf in all_turfs %}
+    {% include 'partials/_turf_card.html' with turf=turf %}
+  {% empty %}
+    <div class="col-span-full text-center py-12 bg-white rounded-lg shadow">
+      <h3 class="text-xl font-semibold text-gray-700">No Turfs Found</h3>
+      <p class="text-gray-500 mt-2">Try adjusting your search filters.</p>
+    </div>
+  {% endfor %}
+</div>
+
+<div id="view-more-wrapper" class="text-center mt-8 mb-6">
+    {% if all_turfs.has_next %}
+        <button id="view-more-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">
+            View More
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    {% endif %}
+</div>
+
+<div class="bg-gray-100 py-12">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <h2 class="text-2xl font-bold text-gray-900">Turfs on Map</h2>
+    <p class="mt-2 text-gray-600">Find turfs near your location</p>
+    <div class="bg-white rounded-lg shadow-lg mt-6">
+      <div id="map" class="w-full h-[400px] bg-gray-200"></div>
+      <div class="p-6 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">View turfs in your area</h3>
+        <button id="use-my-location-btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+          <i class="fas fa-location-arrow mr-2"></i> Use My Location
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="map-data" type="application/json">
+  {
+    "turfs": [
+      {% for turf in turfs_to_display %}
+        {% if turf.latitude and turf.longitude %}
+          {
+            "name": "{{ turf.turf_name|escapejs }}",
+            "lat": {{ turf.latitude }},
+            "lng": {{ turf.longitude }},
+            "place": "{{ turf.place|escapejs }}",
+            "city": "{{ turf.city|escapejs }}",
+            "url": "{% url 'turf_details' turf.id %}"
+          }{% if not forloop.last %},{% endif %}
+        {% endif %}
+      {% endfor %}
+    ],
+    "userLocation": {
+      "lat": {{ latitude|default:"null" }},
+      "lng": {{ longitude|default:"null" }}
+    }
+  }
+</script>
+
+<script>
+  /**
+   * Helper function to get the CSRF token from cookies for Django POST requests.
+   * This is essential for security.
+   */
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+
+  // Wait for the entire page to load before running any scripts.
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    /**
+     * Initializes the custom multi-select dropdown for sports.
+     */
+    function initSportsDropdown() {
+        const dropdown = document.getElementById('sportsDropdown');
+        if (!dropdown) return;
+
+        const toggle = document.getElementById('sportsToggle');
+        const options = document.getElementById('sportsOptions');
+        const arrow = document.getElementById('dropdownArrow');
+        const sportCheckboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+        const selectedSportsText = document.getElementById('selectedSportsText');
+
+        const updateSelectedText = () => {
+            const selected = [...sportCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
+            if (selected.length === 0) {
+                selectedSportsText.textContent = 'Select Sports';
+            } else if (selected.length > 2) {
+                selectedSportsText.textContent = `${selected.length} sports selected`;
+            } else {
+                selectedSportsText.textContent = selected.join(', ');
+            }
+        };
+
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            options.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                options.classList.add('hidden');
+                arrow.classList.remove('rotate-180');
+            }
+        });
+
+        sportCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedText);
+        });
+
+        updateSelectedText(); // Initialize text on page load
+    }
+
+    /**
+     * Initializes the sort form to auto-submit when the user selects an option
+     * and preserves all other existing filters.
+     */
+    function initSortForm() {
+        const sortForm = document.getElementById('sort-form');
+        if (!sortForm) return;
+
+        const sortSelect = sortForm.querySelector('select[name="sort"]');
+        sortSelect.addEventListener('change', () => {
+            const currentParams = new URLSearchParams(window.location.search);
+            const newSortValue = sortSelect.value;
+            
+            if (newSortValue) {
+                currentParams.set('sort', newSortValue);
+            } else {
+                currentParams.delete('sort');
+            }
+            currentParams.delete('page'); // Reset to page 1 when sorting
+            window.location.search = currentParams.toString(); // Reload page
+        });
+    }
+
+    /**
+     * Initializes the "View More" button to fetch and append more turf cards
+     * using an asynchronous request (AJAX).
+     */
+    function initViewMore() {
+        const viewMoreBtn = document.getElementById('view-more-btn');
+        const turfList = document.getElementById('turf-list');
+        const totalCountsEl = document.getElementById('total_counts');
+
+        if (!viewMoreBtn || !turfList) return;
+
+        let currentPage = 2;
+        let isLoading = false;
+
+        viewMoreBtn.addEventListener('click', async () => {
+            if (isLoading) return;
+
+            isLoading = true;
+            const originalContent = viewMoreBtn.innerHTML;
+            viewMoreBtn.disabled = true;
+            viewMoreBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Loading...`;
+
+            const params = new URLSearchParams(window.location.search);
+            params.set('page', currentPage);
+
+            try {
+                const response = await fetch(`?${params.toString()}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+
+                if (data.html) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = data.html;
+                    // Select only the article elements to avoid nesting grids
+                    const newCards = tempDiv.querySelectorAll('article'); 
+                    turfList.append(...newCards);
+                    
+                    // Update the count based on the number of cards now visible
+                    totalCountsEl.textContent = `Showing ${turfList.children.length} results`;
+                }
+
+                if (!data.has_next) {
+                    viewMoreBtn.parentElement.remove(); // Remove button container
+                } else {
+                    currentPage++;
+                }
+            } catch (error) {
+                console.error("Failed to load more turfs:", error);
+                viewMoreBtn.innerHTML = "Error. Try again.";
+            } finally {
+                if (document.getElementById('view-more-btn')) { // Check if button still exists
+                    isLoading = false;
+                    viewMoreBtn.disabled = false;
+                    viewMoreBtn.innerHTML = originalContent;
+                }
+            }
+        });
+    }
+
+    /**
+     * Implements the "Use My Location" button to get the user's coordinates
+     * and send them to the server to update their session.
+     */
+    function initMyLocationButton() {
+        const myLocationBtn = document.getElementById('use-my-location-btn');
+        if (!myLocationBtn) return;
+
+        myLocationBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+
+            myLocationBtn.disabled = true;
+            myLocationBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Finding...`;
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    try {
+                        const response = await fetch("{% url 'update_user_location' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken'), // Crucial for Django security
+                            },
+                            body: JSON.stringify({ lat: latitude, lng: longitude }),
+                        });
+                        const result = await response.json();
+                        if (result.status === 'success') {
+                            alert('Location updated! The page will now reload.');
+                            window.location.reload(); // Reload to show results for the new location
+                        } else {
+                            throw new Error(result.message || 'Server error');
+                        }
+                    } catch (error) {
+                        alert(`Error saving location: ${error.message}`);
+                        myLocationBtn.disabled = false;
+                        myLocationBtn.innerHTML = `<i class="fas fa-location-arrow mr-2"></i> Use My Location`;
+                    }
+                },
+                (error) => {
+                    alert(`Error getting location: ${error.message}`);
+                    myLocationBtn.disabled = false;
+                    myLocationBtn.innerHTML = `<i class="fas fa-location-arrow mr-2"></i> Use My Location`;
+                }
+            );
+        });
+    }
+
+    /**
+     * Initializes the Leaflet map, reading turf and user location data
+     * from the dedicated JSON script tag.
+     */
+    function initLeafletMap() {
+        const mapContainer = document.getElementById('map');
+        const mapDataEl = document.getElementById('map-data');
+        if (!mapContainer || !mapDataEl) return;
+
+        try {
+            const data = JSON.parse(mapDataEl.textContent);
+            const turfs = data.turfs;
+            const userLocation = data.userLocation;
+
+            const map = L.map('map');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            }).addTo(map);
+
+            const markerGroup = L.featureGroup().addTo(map);
+
+            const userIcon = L.divIcon({
+                html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36"><path fill="#ff4b4b" stroke="#ffffff" stroke-width="1.5" d="M12 2.25c-3.141 0-5.998 2.55-5.998 5.697 0 4.935 5.998 12.303 5.998 12.303s5.998-7.368 5.998-12.303C17.998 4.8 15.141 2.25 12 2.25z"/><circle cx="12" cy="7.947" r="2.25" fill="#ffffff"/></svg>`,
+                className: '', 
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -38]
+            });
+
+            if (userLocation && userLocation.lat && userLocation.lng) {
+                L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+                    .addTo(markerGroup)
+                    .bindPopup('<strong>Your Location</strong>');
+            }
+
+            turfs.forEach(turf => {
+                L.marker([turf.lat, turf.lng])
+                    .addTo(markerGroup)
+                    .bindPopup(`<strong><a href="${turf.url}" class="text-green-600 hover:underline">${turf.name}</a></strong><br>${turf.place}, ${turf.city}`);
+            });
+
+            if (markerGroup.getLayers().length > 0) {
+                map.fitBounds(markerGroup.getBounds().pad(0.1));
+            } else {
+                map.setView([8.8932, 76.6141], 12); // Fallback to Kollam, Kerala
+            }
+        } catch (error) {
+            console.error('Failed to initialize Leaflet map:', error);
+            mapContainer.innerHTML = '<p class="text-center text-red-500 p-4">Could not load map.</p>';
+        }
+    }
+
+    // Initialize all JavaScript components
+    initSportsDropdown();
+    initSortForm();
+    initViewMore();
+    initMyLocationButton();
+    initLeafletMap();
+  });
+</script>
+{% endblock %}

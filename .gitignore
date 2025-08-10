@@ -1,0 +1,45 @@
+# ========================
+# Python
+# ========================
+Turf_booking_app/__pycache__/
+Turf_booking_app/**/*.py[cod]
+Turf_booking_app/*.sqlite3
+
+# ========================
+# Virtual Environment
+# ========================
+venv/
+ENV/
+env/
+.venv/
+# ========================
+# Node / Tailwind
+# ========================
+Turf_booking_app/node_modules/
+.pnp.*
+.pnp
+
+Turf_booking_app/tailwind.config.js
+
+# ========================
+# VS Code
+# ========================
+.vscode/
+
+# ========================
+# Django generated files
+# ========================
+*.log
+Turf_booking_app/staticfiles/
+Turf_booking_app/media/
+
+# ========================
+# OS / Misc
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Environment & Secrets
+# ========================
+Turf_booking_app/.env
