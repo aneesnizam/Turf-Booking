@@ -298,6 +298,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   {% endif %}
 </div>
+
+
  <!-- Content for completed bookings -->
 <div id="completed-content" class="tab-content hidden">
     {% if completed_page_obj %}
@@ -461,7 +463,50 @@ document.addEventListener('DOMContentLoaded', function() {
  
   </div>
 </div>
+
+<div id="toast"
+     class="fixed left-1/2 -translate-x-1/2  top-8 px-6 py-4 rounded-lg shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-50 font-medium text-sm min-w-[200px] text-center flex items-center justify-center gap-2">
+    <svg id="toast-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
+    <span id="toast-message"></span>
+</div>
+
 <script>
+function showToast(message, type = "success") {
+    const toast = document.getElementById('toast');
+    const toastIcon = document.getElementById('toast-icon');
+    const toastMessage = document.getElementById('toast-message');
+
+    // Reset styles
+    toast.classList.remove('bg-green-500', 'bg-red-500', 'opacity-100', 'translate-y-2');
+    toast.classList.add('opacity-0', 'flex');
+
+    // Set message text
+    toastMessage.textContent = message;
+
+    // Apply color and icon based on type
+    if (type === "success") {
+        toast.classList.add('bg-green-500', 'text-white');
+        toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`;
+    } else {
+        toast.classList.add('bg-red-500', 'text-white');
+        toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />`;
+    }
+
+    // Show with animation
+    setTimeout(() => {
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100', 'translate-y-2');
+    }, 10);
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-2');
+        toast.classList.add('opacity-0');
+    }, 3000);
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // --- SCRIPT FOR TABS ---
     const tabLinks = document.querySelectorAll('.tab-link');
@@ -483,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- RATING MODAL SETUP ---
+
     const ratingModal = document.getElementById('rating-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const ratingForm = document.getElementById('rating-form');
@@ -517,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         if (!data.score) {
-            alert('Please select a star rating.');
+            showToast('Please select a star rating.', "error");
             return;
         }
 
@@ -532,10 +578,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (response.ok) {
-                alert(result.message);
+                 showToast(result.message, "success");
                 closeModal();
             } else {
-                alert(`Error: ${result.message}`);
+                showToast(result.message, "error");
             }
         } catch (error) {
             alert('An unexpected error occurred.');

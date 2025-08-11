@@ -103,7 +103,7 @@
                                 <div class="mt-1 space-y-1">
                                     <p class="text-lg font-semibold text-gray-900">{{ booking.booking_date|date:"F j, Y" }}</p>
                                     <p class="text-gray-600">{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</p>
-                                    <p class="text-gray-600">Duration: {{ duration }} minutes</p>
+                                    <p class="text-gray-600">Duration: {{ duration }} </p>
                                 </div>
                             </div>
                         </div>
@@ -157,7 +157,7 @@
 
                 <!-- Divider -->
                 <div class="border-t border-gray-200 my-6"></div>
-
+{% if booking.user == request.user %}
                 <!-- QR Code or Booking Reference (Optional) -->
                 <div class="flex justify-center">
                     <div class="bg-gray-50 p-4 rounded-lg inline-flex flex-col items-center">
@@ -168,8 +168,9 @@
                         <p class="text-sm text-gray-500">Show this code at the turf</p>
                     </div>
                 </div>
+                {% endif %}
             </div>
-
+{% if booking.user == request.user %}
             <!-- Card Footer -->
             <div class="bg-gray-50 px-8 py-6 border-t border-gray-200">
                 <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
@@ -193,6 +194,7 @@
         </div>
 
         <!-- Help Section -->
+         
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
             <div class="p-8">
                 <h3 class="text-xl font-semibold text-gray-900 mb-6">Need to make changes?</h3>
@@ -212,6 +214,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Additional Help -->
         <!-- <div class="mt-8 text-center">

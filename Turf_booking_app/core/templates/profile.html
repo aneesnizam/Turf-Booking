@@ -68,7 +68,13 @@
                     </div>
                 </div>
                 <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                  
+                     {% if request.user.role == 'owner' %}
+            <a 
+              href="{% url 'dashboard_redirect' %}"
+              class="ml-4 text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+              Owner Dashboard
+            </a>
+            {% endif %}
                     <button id="logout-button" class="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
                         <i class="fas fa-sign-out-alt mr-2"></i> Logout
                     </button>
@@ -131,9 +137,9 @@
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-700 text-green-100">
                             <i class="fas fa-medal mr-1"></i> {{ request.user.role }}
                         </span>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-green-700">
+                        <!-- <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-green-700">
                             <i class="fas fa-check-circle mr-1"></i> Verified
-                        </span>
+                        </span> -->
                     </div>
                 </div>
                 <div class="mt-6 md:mt-0 md:ml-auto flex flex-col sm:flex-row gap-3">
@@ -159,7 +165,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Total Bookings</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">24</div>
+                                <div class="text-2xl font-semibold text-gray-900">{{total_count}}</div>
                             </dd>
                         </div>
                     </div>
@@ -175,7 +181,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Hours Played</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">48</div>
+                                <div class="text-2xl font-semibold text-gray-900">{{ hours_played }}</div>
                                 <span class="ml-2 text-sm font-medium text-gray-500">hours</span>
                             </dd>
                         </div>
@@ -183,32 +189,34 @@
                 </div>
             </div>
 
-            <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                            <i class="fas fa-futbol text-white text-xl"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 truncate">Favorite Sport</dt>
-                            <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">Football</div>
-                            </dd>
-                        </div>
-                    </div>
-                </div>
+               <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+              <i class="fas fa-wallet text-white text-xl"></i>
             </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Total Spent
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900">₹{{total_cost}}</div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
 
             <div class="stats-card bg-white overflow-hidden shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
                     <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                        <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
                             <i class="fas fa-heart text-white text-xl"></i>
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Favourites</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">10</div>
+                                <div class="text-2xl font-semibold text-gray-900">{{favourites_count}}</div>
                             </dd>
                         </div>
                     </div>
@@ -231,9 +239,7 @@
                     <a href="#" data-tab="settings" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                         <i class="fas fa-cog mr-2"></i> Settings
                     </a>
-                    <a href="#" data-tab="payment" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                        <i class="fas fa-credit-card mr-2"></i> Payment Methods
-                    </button>
+                   
                 </nav>
             </div>
         </div>
@@ -246,302 +252,505 @@
                         <i class="fas fa-plus mr-2"></i> New Booking
                     </button>
                 </div>
-
+  {% if upcoming_bookings|length > 3 %}
+   <div class="flex justify-end mb-3 pr-1">
+  <a href="{% url 'booking' %}" 
+     class="text-green-600 hover:text-green-800 font-medium flex items-center">
+    View All 
+    <i class="fas fa-arrow-right ml-1"></i>
+  </a>
+</div>
+      {% endif %}
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-12">
-                    <ul class="divide-y divide-gray-200">
-                        <li class="booking-card hover:bg-gray-50 transition duration-150">
-                            <div class="px-4 py-4 sm:px-6">
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
-                                            <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-lg font-medium text-gray-900">Elite Football Arena</div>
-                                            <div class="text-sm text-gray-500 mt-1">
-                                                <span class="inline-flex items-center">
-                                                    <i class="fas fa-calendar-day mr-1.5"></i> Today, 5:00 PM - 7:00 PM
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
-                                        <div class="text-right">
-                                            <div class="text-lg font-bold text-gray-900">₹1600</div>
-                                            <div class="text-sm text-green-600 font-medium">
-                                                <i class="fas fa-check-circle mr-1"></i> Confirmed
-                                            </div>
-                                        </div>
-                                        <div class="mt-4 sm:mt-0 flex space-x-3">
-                                            <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                <i class="fas fa-edit mr-2"></i> Modify
-                                            </button>
-                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                <i class="fas fa-receipt mr-2"></i> Details
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
+                    
+                  {% if upcoming_bookings %}
+  <ul class="divide-y divide-gray-200">
+      <!-- Upcoming Booking 1 -->
+       {% for booking in upcoming_bookings %}
+      <li>
+        <div class="px-4 py-4 sm:px-6">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200"
+              >
+            {% with first_image=booking.turf.images.first %}
+  {% if first_image %}
+    <img
+      class="h-full w-full object-cover"
+      src="{{ first_image.image.url }}"
+      alt="Turf image"
+    />
+  {% else %}
+  
+    <div class="h-full w-full flex items-center justify-center bg-gray-100">
+    <p class="text-sm font-medium text-gray-500">No Image</p>
+</div>
+  {% endif %}
+{% endwith %}
+
+              </div>
+              <div class="ml-4">
+                <div class="text-lg font-medium text-gray-900">
+                  {{ booking.turf.turf_name }}
                 </div>
+                <div class="text-sm text-gray-500 mt-1">
+                  <span class="inline-flex items-center">
+                    <i class="fas fa-calendar-day mr-1.5"></i> {{booking.human_date}},
+                     {{booking.start_time|date:"g:i A"}} -
+                    {{booking.end_time|date:"g:i A"}}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6"
+            >
+              <div class="text-right">
+                <div class="text-lg font-bold text-gray-900">₹{{booking.total_cost}}</div>
+                <div class="text-sm text-green-600 font-medium">
+                  <i class="fas fa-check-circle mr-1"></i> {{ booking.status }}
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex space-x-3">
+             
+                <a href="{% url 'view_booking_detail' booking.verify_token %}"
+                  class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <i class="fas fa-receipt mr-2"></i> View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+{% endfor %}
+</ul>
+  {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+        <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-medium text-gray-900">No upcoming bookings</h3>
+      <p class="mt-2 text-sm text-gray-500">
+       You don't have any upcoming turf bookings. Book a turf to get started!
+      </p>
+      <div class="mt-6">
+        <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-search mr-2"></i> Explore Turfs
+        </a>
+      </div>
+    </div>
+  {% endif %}
+                </div>
+
+
+
+
 
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-medium text-gray-900">Past Bookings</h2>
-                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <i class="fas fa-filter mr-2"></i> Filter
-                    </button>
                 </div>
+                  {% if past_bookings|length > 3 %}
+   <div class="flex justify-end mb-3 pr-1">
+  <a href="{% url 'booking' %}" 
+     class="text-green-600 hover:text-green-800 font-medium flex items-center">
+    View All 
+    <i class="fas fa-arrow-right ml-1"></i>
+  </a>
+</div>
+      {% endif %}
+               <div  class="bg-white shadow overflow-hidden sm:rounded-lg mb-12">
+    {% if past_bookings %}
+{% include 'partials/completed_bookings.html' with completed_page_obj=past_bookings  %}
 
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <ul class="divide-y divide-gray-200">
-                        <li class="booking-card hover:bg-gray-50 transition duration-150">
-                            <div class="px-4 py-4 sm:px-6">
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
-                                            <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-lg font-medium text-gray-900">Multi-Sport Complex</div>
-                                            <div class="text-sm text-gray-500 mt-1">
-                                                <span class="inline-flex items-center">
-                                                    <i class="fas fa-calendar-day mr-1.5"></i> May 12, 6:00 PM - 8:00 PM
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
-                                        <div class="text-right">
-                                            <div class="text-lg font-bold text-gray-900">₹3000</div>
-                                            <div class="text-sm text-green-600 font-medium">
-                                                <i class="fas fa-check-circle mr-1"></i> Completed
-                                            </div>
-                                        </div>
-                                        <div class="mt-4 sm:mt-0 flex space-x-3">
-                                            <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                <i class="fas fa-redo mr-2"></i> Book Again
-                                            </button>
-                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                <i class="fas fa-receipt mr-2"></i> Details
-                                            </button>
-                                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                                <i class="fas fa-star mr-2"></i> Rate
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+        <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-medium text-gray-900">No completed bookings</h3>
+      <p class="mt-2 text-sm text-gray-500">
+        You haven't completed any turf bookings yet. Your completed bookings will appear here.
+      </p>
+      <div class="mt-6">
+        <a href="{% url 'turfs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-search mr-2"></i> Explore Turfs
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
             </div>
+
+
+
+
 
             <div id="favorites-tab" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-medium text-gray-900">Favorite Turfs</h2>
-                    <button class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <i class="fas fa-filter mr-2"></i> Filter
-                    </button>
+                   
                 </div>
-
+  {% if request.user.favourites.all|length > 3 %}
+   <div class="flex justify-end mb-3 pr-1">
+  <a href="{% url 'booking' %}" 
+     class="text-green-600 hover:text-green-800 font-medium flex items-center">
+    View All 
+    <i class="fas fa-arrow-right ml-1"></i>
+  </a>
+</div>
+      {% endif %}
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+
+                    {% for turf in request.user.favourites.all|slice:":3" %}
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="h-48 bg-gray-200 overflow-hidden">
-                            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Turf image">
+                              {% with images=turf.images.first %}
+                    {% if images %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{{ images.image.url }}"
+                        alt="Turf image"
+                      />
+                    {% else %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{% static 'images/fallback.jpg' %}"
+                        alt="No image available"
+                      />
+                    {% endif %}
+                  {% endwith %}
                         </div>
                         <div class="px-4 py-5 sm:p-6">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg leading-6 font-medium text-gray-900">Elite Football Arena</h3>
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">{{turf.turf_name}}</h3>
                                 <button class="text-red-500 hover:text-red-600">
                                     <i class="fas fa-heart"></i>
                                 </button>
                             </div>
                             <div class="mt-2 flex items-center text-sm text-gray-500">
-                                <i class="fas fa-map-marker-alt mr-1.5"></i> Downtown, City
+                                <i class="fas fa-map-marker-alt mr-1.5"></i> {{turf.place}}, {{turf.city}}
                             </div>
                             <div class="mt-2 flex items-center text-sm text-gray-500">
-                                <i class="fas fa-star text-yellow-400 mr-1.5"></i> 4.8 (120 reviews)
+                                <i class="fas fa-star text-yellow-400 mr-1.5"></i> {{turf.average_rating}} {% if turf.ratings.all|length >= 1 %} ({{turf.ratings.count}} reviews) {% endif %}
                             </div>
                             <div class="mt-4 flex justify-between items-center">
-                                <span class="text-lg font-bold text-gray-900">₹800/hr</span>
-                                <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <span class="text-lg font-bold text-gray-900">₹{{turf.cost_per_hour}}/hr</span>
+                                <a href="{% url 'turf_details' turf.id %}"" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                     Book Now
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
+                </div>
+                <!-- most booked -->
+
+                <div class="flex justify-between items-center my-6">
+                    <h2 class="text-lg font-medium text-gray-900">Most Booked Turfs</h2>
+                   
+                </div>
+  
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+
+                    {% for turf in most_booked_turfs %}
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="h-48 bg-gray-200 overflow-hidden">
+                              {% with images=turf.images.first %}
+                    {% if images %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{{ images.image.url }}"
+                        alt="Turf image"
+                      />
+                    {% else %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{% static 'images/fallback.jpg' %}"
+                        alt="No image available"
+                      />
+                    {% endif %}
+                  {% endwith %}
+                        </div>
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">{{turf.turf_name}}</h3>
+                              
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1.5"></i> {{turf.place}}, {{turf.city}}
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1.5"></i> {{turf.average_rating}} {% if turf.ratings.all|length >= 1 %} ({{turf.ratings.count}} reviews) {% endif %}
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-lg font-bold text-gray-900">₹{{turf.cost_per_hour}}/hr</span>
+                                <a href="{% url 'turf_details' turf.id %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    Book Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div id="achievements-tab" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-medium text-gray-900">Your Achievements</h2>
-                    <div class="text-sm text-gray-500">
-                        <span class="font-medium text-green-600">15</span> of <span class="font-medium">25</span> achievements unlocked
-                    </div>
-                </div>
 
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Progress</h3>
-                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-green-600 h-2.5 rounded-full" style="width: 60%"></div>
-                        </div>
-                    </div>
-                    <ul class="divide-y divide-gray-200">
-                        <li class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                    <i class="fas fa-trophy text-green-600"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">First Booking</div>
-                                    <div class="text-sm text-gray-500">Complete your first turf booking</div>
-                                </div>
-                                <div class="ml-auto">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check mr-1"></i> Unlocked
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <i class="fas fa-trophy text-gray-400"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Turf Explorer</div>
-                                    <div class="text-sm text-gray-500">Book at 5 different turfs</div>
-                                </div>
-                                <div class="ml-auto">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        3/5
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
+
+
+
+
+
+          <!-- Achievements Tab -->
+<div id="achievements-tab" class="tab-content hidden">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Your Trophy Cabinet</h2>
+    </div>
+
+    <!-- Grid for Achievements -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Achievement 1: First Booking (Unlocked) -->
+        <div class="bg-white border-2 border-green-500 rounded-lg shadow-lg p-6 flex items-center space-x-4 transition-transform transform hover:scale-105">
+            <div class="flex-shrink-0">
+                <div class="relative">
+                    <i class="fas fa-trophy text-6xl text-yellow-400"></i>
                 </div>
             </div>
-
-            <div id="settings-tab" class="tab-content hidden">
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Account Settings</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your account preferences and privacy settings.</p>
-                    </div>
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Notification Preferences</label>
-                                <div class="mt-4 space-y-4">
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="email-notifications" name="email-notifications" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="email-notifications" class="font-medium text-gray-700">Email notifications</label>
-                                            <p class="text-gray-500">Get important updates via email</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="sms-notifications" name="sms-notifications" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="sms-notifications" class="font-medium text-gray-700">SMS notifications</label>
-                                            <p class="text-gray-500">Get booking reminders via SMS</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Privacy Settings</label>
-                                <div class="mt-4 space-y-4">
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="show-profile" name="show-profile" type="checkbox" checked class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="show-profile" class="font-medium text-gray-700">Public profile</label>
-                                            <p class="text-gray-500">Allow others to view your profile</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="show-activity" name="show-activity" type="checkbox" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="show-activity" class="font-medium text-gray-700">Show activity</label>
-                                            <p class="text-gray-500">Share your booking activity</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                Save Settings
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="payment-tab" class="tab-content hidden">
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Payment Methods</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your saved payment methods for faster checkout.</p>
-                    </div>
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="space-y-6">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                            <i class="fab fa-cc-visa text-green-600 text-xl"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Visa ending in 4242</div>
-                                            <div class="text-sm text-gray-500">Expires 04/2025</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-red-500 hover:text-red-700 text-sm font-medium">
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <i class="fab fa-paypal text-green-500 text-xl"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">PayPal</div>
-                                            <div class="text-sm text-gray-500">john.doe@example.com</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-red-500 hover:text-red-700 text-sm font-medium">
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                <i class="fas fa-plus mr-2"></i> Add Payment Method
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">First Timer</h3>
+                <p class="text-gray-600 text-sm mt-1">You've completed your first booking. Welcome to the club!</p>
+                <div class="mt-2 text-xs font-bold text-green-600">UNLOCKED</div>
             </div>
         </div>
+
+        <!-- Achievement 2: Night Owl (Unlocked) -->
+        <div class="bg-white border-2 border-green-500 rounded-lg shadow-lg p-6 flex items-center space-x-4 transition-transform transform hover:scale-105">
+            <div class="flex-shrink-0">
+                <i class="fas fa-moon text-6xl text-indigo-500"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Night Owl</h3>
+                <p class="text-gray-600 text-sm mt-1">You booked a game after 10 PM. The night is young!</p>
+                <div class="mt-2 text-xs font-bold text-green-600">UNLOCKED</div>
+            </div>
+        </div>
+        
+        <!-- Achievement 3: Loyalist (In Progress) -->
+        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+            <div class="flex-shrink-0 relative">
+                <i class="fas fa-heart text-6xl text-gray-400"></i>
+                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700">Loyalist</h3>
+                <p class="text-gray-500 text-sm mt-1">Book the same turf 5 times.</p>
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-300 rounded-full h-2.5 mt-2">
+                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 40%"></div>
+                </div>
+                <div class="mt-1 text-xs font-bold text-gray-500">2 / 5 Bookings</div>
+            </div>
+        </div>
+
+        <!-- Achievement 4: Explorer (Locked) -->
+        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+            <div class="flex-shrink-0 relative">
+                <i class="fas fa-compass text-6xl text-gray-400"></i>
+                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700">Turf Explorer</h3>
+                <p class="text-gray-500 text-sm mt-1">Book at 5 different turfs.</p>
+                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
+            </div>
+        </div>
+
+        <!-- Achievement 5: Hat-trick Hero (Locked) -->
+        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+            <div class="flex-shrink-0 relative">
+                <i class="fas fa-futbol text-6xl text-gray-400"></i>
+                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700">Hat-trick Hero</h3>
+                <p class="text-gray-500 text-sm mt-1">Book 3 times in a single month.</p>
+                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
+            </div>
+        </div>
+        
+        <!-- Achievement 6: Big Spender (Locked) -->
+        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+            <div class="flex-shrink-0 relative">
+                <i class="fas fa-gem text-6xl text-gray-400"></i>
+                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700">Big Spender</h3>
+                <p class="text-gray-500 text-sm mt-1">Spend over ₹10,000 in total.</p>
+                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
+            </div>
+        </div>
+
     </div>
+</div>
+
+      <div id="settings-tab" class="tab-content hidden">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Account Settings</h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage your account preferences.</p>
+    </div>
+
+    <!-- Main Settings Form -->
+    <form id="settings-form" method="POST" action="{% url 'profile_settings' %}">
+      {% csrf_token %}
+      <div class="px-4 py-5 sm:p-6">
+        
+        <!-- Section: Personalization -->
+        <div>
+          <h3 class="text-base font-semibold leading-6 text-gray-900">Personalization</h3>
+          <p class="mt-1 text-sm text-gray-500">Customize your experience to find turfs faster.</p>
+        </div>
+
+        <div class="mt-6 divide-y divide-gray-200 border-t border-gray-200">
+          <!-- Setting: Default Location -->
+          <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
+            <div class="text-sm font-medium text-gray-600">Default Location</div>
+            <div class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <div class="relative mb-4" id="place-field">
+                <label for="place" class="mb-[3px] font-[600]">Location</label>
+                <div class="flex gap-2 items-start">
+                  <input
+                    type="text"
+                    id="place"
+                    name="location"
+                    placeholder="Type your city or hometown"
+                    class="input_fields flex-grow h-10 px-3 py-2 border rounded-lg"
+                    value="{{ request.user.location }}"
+                    autocomplete="off"
+                    required
+                  />
+                  <button
+                    type="button"
+                    id="fetch-location"
+                    class="px-4 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-200 ease-in-out flex items-center"
+                  >
+                    Get
+                  </button>
+                </div>
+                <ul
+                  id="autocomplete-results"
+                  class="absolute bg-white border rounded shadow mt-1 w-full max-h-[200px] overflow-auto z-50 hidden"
+                ></ul>
+                <input type="hidden" id="latitude" name="latitude" value="{{ request.user.latitude }}">
+                <input type="hidden" id="longitude" name="longitude" value="{{ request.user.longitude }}">
+              </div>
+              <p class="mt-2 text-xs text-gray-400">This city will be used for initial turf searches.</p>
+            </div>
+          </div>
+
+          <!-- Setting: Communication Preferences -->
+          <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
+            <div class="text-sm font-medium text-gray-600">Email Communications</div>
+            <div class="mt-4 sm:col-span-2 sm:mt-0">
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="flex h-5 items-center">
+                    <input id="booking-updates" name="booking_updates" type="checkbox"
+                      {% if request.user.booking_updates %}checked{% endif %}
+                      class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                  </div>
+                  <div class="ml-3 text-sm">
+                    <label for="booking-updates" class="font-medium text-gray-700">Booking Updates</label>
+                    <p class="text-gray-500">Receive confirmations and reminders for your bookings.</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="flex h-5 items-center">
+                    <input id="new-turfs" name="new_turfs" type="checkbox"
+                      {% if request.user.new_turfs_alerts %}checked{% endif %}
+                      class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                  </div>
+                  <div class="ml-3 text-sm">
+                    <label for="new-turfs" class="font-medium text-gray-700">New Turf Alerts</label>
+                    <p class="text-gray-500">Be the first to know when a new turf opens in your area.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex gap-2">
+          <button type="button" id="edit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md">Edit</button>
+          <button type="submit" id="save-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hidden">Save Preferences</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+        </div>
+    </div>
+
+   <script>
+// Autocomplete
+document.getElementById("fetch-location").addEventListener("click", () => {
+  const query = document.getElementById("place").value;
+  if (!query.trim()) return;
+
+  fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById("autocomplete-results");
+      list.innerHTML = "";
+
+      if (data.length === 0) {
+        list.classList.add("hidden");
+        return;
+      }
+
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.display_name;
+        li.className = "px-3 py-2 cursor-pointer hover:bg-emerald-100 border-b";
+        li.onclick = () => {
+          document.getElementById("place").value = item.display_name;
+          document.getElementById("latitude").value = item.lat || item.latitude || "";
+          document.getElementById("longitude").value = item.lon || item.longitude || "";
+          list.classList.add("hidden");
+        };
+        list.appendChild(li);
+      });
+
+      list.classList.remove("hidden");
+    })
+    .catch(error => {
+      console.error("Error fetching autocomplete:", error);
+    });
+});
+
+// Edit → Save toggle
+document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
+  .forEach(el => el.disabled = true);
+
+document.getElementById("edit-btn").addEventListener("click", function() {
+  document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
+    .forEach(el => el.disabled = false);
+  this.classList.add("hidden");
+  document.getElementById("save-btn").classList.remove("hidden");
+});
+</script>
+  
+
+
 <!-- Profile Edit -->
     <div id="edit-profile-modal" class="modal fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -663,7 +872,7 @@
     </div>
 
    <footer class="bg-gray-900 border-t border-gray-800">
-  <div class="max-w-7xl mx-auto pb-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col md:flex-row justify-between items-center">
       <!-- Branding -->
       <div class="flex items-center space-x-4">
@@ -690,7 +899,7 @@
     
     <!-- Copyright and legal links -->
     <div class="mt-6 pt-6 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-      <p class="text-sm text-gray-400">
+      <p class="text-sm  text-gray-400">
         &copy; {% now "Y" %} GoTurfy. All rights reserved.
       </p>
       <div class="flex space-x-4 mt-3 md:mt-0">
@@ -709,6 +918,7 @@
 </footer>
 
     <script>
+
         document.addEventListener('DOMContentLoaded', function() {
             // --- Tab switching functionality ---
             const tabs = document.querySelectorAll('nav.-mb-px a[data-tab]');
@@ -856,6 +1066,11 @@
             }
 
             setupMessageDismissal(); // Call the function to set up dismissal for messages
+
+
+
+
+            
         });
     </script>
 </body>

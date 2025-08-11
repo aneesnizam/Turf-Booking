@@ -24,7 +24,7 @@ from django.db.models.functions import Coalesce
 from xhtml2pdf import pisa
 import io
 import qrcode 
-
+from .utility import get_booking_details
 
 
 @login_required
@@ -530,62 +530,29 @@ def turf_details(request, turf_id):
 
 
 # -------------------- BOOKINGS --------------------
-@login_required
 def booking(request):
-    # --- 1. Initial Setup ---
-    user = request.user
-    bookings = user.bookings.all().order_by('-booking_date', '-start_time')
-    now = timezone.now()
+    # --- 1. Get all booking data from the helper function ---
+    booking_data = get_booking_details(request.user)
 
-    # --- 2. Classify Bookings and Calculate Duration ---
-    past_bookings = []
-    upcoming_bookings = []
-    total_duration = timedelta()
-
-    for booking in bookings:
-        end_dt = timezone.make_aware(datetime.combine(booking.booking_date, booking.end_time))
-        if booking.end_time < booking.start_time:
-            end_dt += timedelta(days=1)
-            
-        if end_dt < now:
-            past_bookings.append(booking)
-            # Calculate duration at the same time
-            start_dt = timezone.make_aware(datetime.combine(booking.booking_date, booking.start_time))
-            duration = end_dt - start_dt
-            total_duration += duration
-        else:
-            upcoming_bookings.append(booking)
-            
-    # --- 3. Calculate Statistics ---
-    completed_booking_count = len(past_bookings)
-    hours_played = total_duration.total_seconds() / 3600
-    total_cost = sum(b.total_cost for b in bookings if b.status != 'cancelled')
-
-    most_booked_turfs = Turf.objects.filter(
-        bookings__user=user, 
-        bookings__status='confirmed'
-    ).annotate(
-        total_booking_count=Count('bookings')
-    ).order_by('-total_booking_count')[:3]
-
-    # --- 4. Pagination and AJAX Handling ---
-    paginator = Paginator(past_bookings, 5)
+  
+    paginator = Paginator(booking_data['past_bookings'], 5) 
     completed_page_obj = paginator.get_page(request.GET.get('completed_page'))
     
+    # --- 3. Handle AJAX requests (if any) ---
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'partials/completed_bookings.html', {
             'completed_page_obj': completed_page_obj
         })
 
-    # --- 5. Prepare Context and Render ---
+    # --- 4. Prepare the context and render the full page ---
     context = {
         'completed_page_obj': completed_page_obj,
-        'upcoming_bookings': upcoming_bookings,
-        'hours_played': f'{hours_played:.1f}',
-        'total_cost': total_cost,
-        'most_booked_turfs': most_booked_turfs,
-        'upcoming_bookings_count': len(upcoming_bookings),
-        'completed_booking_count': completed_booking_count
+        'upcoming_bookings': booking_data['upcoming_bookings'],
+        'hours_played': booking_data['hours_played'],
+        'total_cost': booking_data['total_cost'],
+        'most_booked_turfs': booking_data['most_booked_turfs'],
+        'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
+        'completed_booking_count': booking_data['completed_booking_count']
     }
     return render(request, 'booking.html', context)
 
@@ -710,7 +677,7 @@ def booking_qr(request, booking_token):
     booking = get_object_or_404(Booking, verify_token=booking_token, user=request.user)
     
     # --- 2. Correctly Build the URL ---
-    booking_url = request.build_absolute_uri(f"/view_booking_detail/{booking.verify_token}/")
+    booking_url = request.build_absolute_uri(f"/view_booking_detail/{booking.verify_token}")
     
     # --- 3. Generate QR Code Image ---
     qr = qrcode.QRCode(
@@ -759,6 +726,36 @@ def owner_dashboard(request):
 # -------------------- PROFILE --------------------
 @login_required
 def profile(request):
-    return render(request, 'profile.html')
+    booking_data = get_booking_details(request.user)
+    favourites_count = request.user.favourites.count()
+    total_count = booking_data['completed_booking_count'] + booking_data['upcoming_bookings_count']
+    context = {
+        'upcoming_bookings': booking_data['upcoming_bookings'][:4],
+        'hours_played': booking_data['hours_played'],
+        'total_cost': booking_data['total_cost'],
+        'past_bookings':booking_data['past_bookings'][:4],
+        'most_booked_turfs': booking_data['most_booked_turfs'],
+        'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
+        'completed_booking_count': booking_data['completed_booking_count'],
+        'favourites_count' : favourites_count,
+        'total_count' : total_count
+    }
+    
+    return render(request, 'profile.html',context)
 
 
+def profile_settings(request):
+    user = request.user
+
+    if request.method == "POST":
+        user.location = request.POST.get("location", "")
+        user.latitude = request.POST.get("latitude", "")
+        user.longitude = request.POST.get("longitude", "")
+        user.booking_updates = "booking_updates" in request.POST
+        user.new_turfs_alerts = "new_turfs" in request.POST
+        user.save()
+
+        messages.success(request, "Preferences updated successfully.")
+        return redirect("profile")  
+
+    return redirect('profile')

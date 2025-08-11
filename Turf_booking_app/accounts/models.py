@@ -38,6 +38,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     longitude = models.FloatField(null=True, blank=True)
     location = models.CharField(max_length=200,default='',blank=True)
     favourites = models.ManyToManyField('Turf', related_name='fav_users', blank=True)
+    new_turfs_alerts = models.BooleanField(default=False)
+    booking_updates = models.BooleanField(default=False)
 
     ROLE_CHOICES = [
         ('user', 'Regular User'),
