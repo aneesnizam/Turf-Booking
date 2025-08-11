@@ -121,3 +121,24 @@ def autocomplete_place(request):
     except Exception as e:
         print(f"Autocomplete error: {e}")
         return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+
+
+# -------------------- STATIC PAGES --------------------
+def about_us(request):
+    return render(request,'pages/about_us.html')
+
+
+def contact_us(request):
+    return render(request,'pages/contact_us.html')
+
+
+def privacy_policy(request):
+    return render(request,'pages/privacy_policy.html')
+
+
+def terms_and_conditions(request):
+    return render(request,'pages/terms_and_conditions.html')
+
+
+def cancellation_policy(request):
+    return render(request, 'pages/cancellation_policy.html')

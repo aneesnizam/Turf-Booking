@@ -13,7 +13,7 @@ from django.template.loader import render_to_string,get_template
 from django.shortcuts import get_object_or_404
 User = get_user_model()
 import json
-from django.http import JsonResponse ,HttpResponse
+from django.http import JsonResponse ,HttpResponse,HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.db.models import F, Q, Case, When, Value, IntegerField ,Count,Avg
 from haversine import haversine,Unit
@@ -27,28 +27,6 @@ import qrcode
 
 
 
-# -------------------- STATIC PAGES --------------------
-def about_us(request):
-    return render(request,'pages/about_us.html')
-
-
-def contact_us(request):
-    return render(request,'pages/contact_us.html')
-
-
-def privacy_policy(request):
-    return render(request,'pages    /privacy_policy.html')
-
-
-def terms_and_conditions(request):
-    return render(request,'pages/terms_and_conditions.html')
-
-
-def cancellation_policy(request):
-    return render(request, 'pages/cancellation_policy.html')
-
-
-
 @login_required
 def logoutuser(request):
     logout(request)
@@ -57,6 +35,18 @@ def logoutuser(request):
 
 
 
+@login_required
+@require_POST
+def delete_review(request,review_id):
+    review = get_object_or_404(Rating,id = review_id)
+    if request.user == review.user or request.user.is_staff:
+        review.delete()
+        return JsonResponse({'success':True})
+    return HttpResponseForbidden('You are not allowed to delete this review.')
+    
+    
+    
+    
 # -------------------- HOME --------------------
 @login_required
 def home(request):
@@ -456,6 +446,15 @@ def check_availability(request, turf_id):
 def turf_details(request, turf_id):
     # --- 1. Initial Setup ---
     turf = get_object_or_404(Turf, id=turf_id)
+    ratings = turf.ratings.all().annotate(
+            is_my_review=Case(
+                When(user=request.user , then=Value(1)),
+                     default=Value(0),
+                     output_field=IntegerField()
+            )
+        ).order_by('-is_my_review','-created_at')
+
+
 
     if request.method == 'POST':
         # --- 2. Process and Validate Form Data ---
@@ -494,6 +493,9 @@ def turf_details(request, turf_id):
         if conflicting_bookings.exists():
             messages.error(request, 'Sorry, this time slot was just booked. Please select another time.')
             return redirect('turf_details', turf_id=turf.id)
+        
+        
+            
 
         # --- 5. Create and Save the Booking ---
         total_cost = (Decimal(turf.cost_per_hour) * duration_hours)
@@ -520,7 +522,8 @@ def turf_details(request, turf_id):
     context = {
         'turf_detail': turf,
         'total_bookings': turf.bookings.count(),
-        'current_hour': datetime.now().hour
+        'current_hour': datetime.now().hour,
+        'ratings': ratings,
     }
     return render(request, 'turf_details.html', context)
 

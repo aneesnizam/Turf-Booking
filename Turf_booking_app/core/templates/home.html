@@ -252,15 +252,16 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-[#fff]">
   <div class="flex justify-between items-center mb-8">
     <h2 class="text-2xl font-bold text-gray-900">Popular Turfs</h2>
+    {% if all_turfs|length %}
     <a
       href="{% url 'turfs' %}"
       class="text-green-600 hover:text-green-800 font-medium"
       >View All <i class="fas fa-arrow-right ml-1"></i
     ></a>
+    {% endif %}
   </div>
 
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-    <!-- Turf Card 1 -->
     {% for turf in all_turfs %}
     <div
       class="bg-white rounded-lg shadow-md overflow-hidden transition transform hover:-translate-y-1 hover:shadow-lg"
@@ -310,6 +311,19 @@
         </div>
       </div>
     </div>
+    {% empty %}
+    <div class="col-span-full py-12 text-center bg-white rounded-lg shadow-[0_0_15px_0_rgba(0,0,0,0.1)] overflow-hidden" >
+      <div class="mx-auto max-w-md">
+        <div class="text-gray-400 mb-4">
+          <i class="fas fa-futbol fa-4x"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Oops! No Turfs Found</h3>
+        <p class="text-gray-500 mb-6">
+          We couldn't find any turfs matching your criteria. Please check back later.
+        </p>
+       
+      </div>
+    </div>
     {% endfor %}
   </div>
 </div>
@@ -319,38 +333,36 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-2xl font-bold text-gray-900">Your Recent Bookings</h2>
+        {% if request.user.bookings.all|length %}
       <a href="{% url 'booking' %}" class="text-green-600 hover:text-green-800 font-medium"
         >View All <i class="fas fa-arrow-right ml-1"></i
       ></a>
+      {% endif %}
     </div>
 
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
       <ul class="divide-y divide-gray-200">
-        <!-- Booking 1 -->
         {% for booking in request.user.bookings.all|dictsortreversed:"id"|slice:":3" %}
         <li>
           <div class="px-4 py-4 sm:px-6">
             <div class="flex items-center justify-between">
               <div class="flex items-center">
-                <div
-                  class="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-gray-200"
-                >
-               {% with images=booking.turf.images.all %}
-  {% if images %}
-    <img
-      class="h-full w-full object-cover"
-      src="{{ images.0.image.url }}"
-      alt="Turf image"
-    />
-  {% else %}
-    <img
-      class="h-full w-full object-cover"
-      src="{% static 'images/fallback.jpg' %}"
-      alt="No image available"
-    />
-  {% endif %}
-{% endwith %}
-
+                <div class="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-gray-200">
+                  {% with images=booking.turf.images.all %}
+                    {% if images %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{{ images.0.image.url }}"
+                        alt="Turf image"
+                      />
+                    {% else %}
+                      <img
+                        class="h-full w-full object-cover"
+                        src="{% static 'images/fallback.jpg' %}"
+                        alt="No image available"
+                      />
+                    {% endif %}
+                  {% endwith %}
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900">
@@ -392,11 +404,25 @@
             </div>
           </div>
         </li>
+        {% empty %}
+        <li>
+          <div class="px-4 py-8 text-center">
+            <div class="text-gray-500">
+              <i class="fas fa-calendar-times fa-3x mb-4"></i>
+              <p class="text-lg font-medium">No bookings found</p>
+              <p class="mt-2">You haven't made any bookings yet.</p>
+              <a href="{% url 'turfs' %}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                Book a Turf Now
+              </a>
+            </div>
+          </div>
+        </li>
         {% endfor %}
       </ul>
     </div>
   </div>
 </div>
+
 
 <!-- Features Section -->
 <div class="py-12 bg-white">

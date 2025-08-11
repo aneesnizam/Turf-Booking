@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Turf ,Sport
+from .models import User, Turf ,Sport,Rating
 
 
 @admin.register(User)
@@ -23,3 +23,9 @@ class TurfAdmin(admin.ModelAdmin):
 class SportAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields=('name',)
+    
+    
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('score','comment','booking')
+    search_fields=('turf__turf_name','user__fullname',)

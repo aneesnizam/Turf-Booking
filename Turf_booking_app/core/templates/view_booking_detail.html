@@ -203,24 +203,46 @@
                         </svg>
                         Book Again
                     </a>
-                    <a href="{% url 'cancel_booking' booking.id %}" class="group flex items-center justify-center px-5 py-3.5 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-red-300 transition-all">
+                    <button onclick=" my_modal_5.showModal()" class="group flex items-center justify-center px-5 py-3.5 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-red-300 transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400 group-hover:text-red-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         Cancel Booking
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Additional Help -->
-        <div class="mt-8 text-center">
-            <!-- <p class="text-sm text-gray-500">
+        <!-- <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
                 Having trouble? Call us at <a href="tel:+919876543210" class="font-medium text-green-600 hover:text-green-700">+91 98765 43210</a>
-            </p> -->
-        </div>
+            </p>
+        </div> -->
     </div>
 </div>
+
+<dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Confirm Booking Cancellation</h3>
+    
+    <p class="py-4">Are you sure you want to cancel this booking? This action cannot be undone.</p>
+    
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Nevermind</button>
+      </form>
+      <a 
+        href="{% url 'cancel_booking' booking.id %}" 
+        class="btn bg-red-600 text-white hover:bg-red-700">
+        Yes, Cancel
+      </a>
+    </div>
+  </div>
+</dialog>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Confetti colors matching your theme
