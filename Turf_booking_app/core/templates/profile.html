@@ -513,94 +513,54 @@
 
   <!-- ========== ACHIEVEMENTS TAB CONTENT ========== -->
 <div id="achievements-tab" class="tab-content hidden">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Your Trophy Cabinet</h2>
-    </div>
+      <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Your Trophy Cabinet</h2>
+          <div class="text-sm font-semibold text-green-800 bg-green-100 px-3 py-1 rounded-full">
+    {{ achievement_unlocked_count }} / {{ achievements|length }}
+</div>
+      </div>
 
-    <!-- Grid for Achievements -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Achievement 1: First Booking (Unlocked) -->
-        <div class="bg-white border-2 border-green-500 rounded-lg shadow-lg p-6 flex items-center space-x-4 transition-transform transform hover:scale-105">
-            <div class="flex-shrink-0">
-                <div class="relative">
-                    <i class="fas fa-trophy text-6xl text-yellow-400"></i>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">First Timer</h3>
-                <p class="text-gray-600 text-sm mt-1">You've completed your first booking. Welcome to the club!</p>
-                <div class="mt-2 text-xs font-bold text-green-600">UNLOCKED</div>
-            </div>
-        </div>
-
-        <!-- Achievement 2: Night Owl (Unlocked) -->
-        <div class="bg-white border-2 border-green-500 rounded-lg shadow-lg p-6 flex items-center space-x-4 transition-transform transform hover:scale-105">
-            <div class="flex-shrink-0">
-                <i class="fas fa-moon text-6xl text-indigo-500"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">Night Owl</h3>
-                <p class="text-gray-600 text-sm mt-1">You booked a game after 10 PM. The night is young!</p>
-                <div class="mt-2 text-xs font-bold text-green-600">UNLOCKED</div>
-            </div>
-        </div>
         
-        <!-- Achievement 3: Loyalist (In Progress) -->
-        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
-            <div class="flex-shrink-0 relative">
-                <i class="fas fa-heart text-6xl text-gray-400"></i>
-                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Loyalist</h3>
-                <p class="text-gray-500 text-sm mt-1">Book the same turf 5 times.</p>
-                <!-- Progress Bar -->
-                <div class="w-full bg-gray-300 rounded-full h-2.5 mt-2">
-                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 40%"></div>
+        {% for ach in achievements %}
+            {% if ach.unlocked %} 
+                <div class="bg-white border-2 border-green-500 rounded-lg shadow-lg p-6 flex items-center space-x-4 transition-transform transform hover:scale-105">
+                    <div class="flex-shrink-0"><i class="{{ ach.icon_class }} text-6xl {{ ach.icon_color_class }}"></i></div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ ach.title }}</h3>
+                        <p class="text-gray-600 text-sm mt-1">{{ ach.description }}</p>
+                        <div class="mt-2 text-xs font-bold text-green-600">UNLOCKED</div>
+                    </div>
                 </div>
-                <div class="mt-1 text-xs font-bold text-gray-500">2 / 5 Bookings</div>
-            </div>
-        </div>
-
-        <!-- Achievement 4: Explorer (Locked) -->
-        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
-            <div class="flex-shrink-0 relative">
-                <i class="fas fa-compass text-6xl text-gray-400"></i>
-                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Turf Explorer</h3>
-                <p class="text-gray-500 text-sm mt-1">Book at 5 different turfs.</p>
-                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
-            </div>
-        </div>
-
-        <!-- Achievement 5: Hat-trick Hero (Locked) -->
-        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
-            <div class="flex-shrink-0 relative">
-                <i class="fas fa-futbol text-6xl text-gray-400"></i>
-                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Hat-trick Hero</h3>
-                <p class="text-gray-500 text-sm mt-1">Book 3 times in a single month.</p>
-                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
-            </div>
-        </div>
-        
-        <!-- Achievement 6: Big Spender (Locked) -->
-        <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
-            <div class="flex-shrink-0 relative">
-                <i class="fas fa-gem text-6xl text-gray-400"></i>
-                <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Big Spender</h3>
-                <p class="text-gray-500 text-sm mt-1">Spend over ₹10,000 in total.</p>
-                <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
-            </div>
-        </div>
+            {% elif ach.current_progress > 0 %}
+                <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+                    <div class="flex-shrink-0 relative">
+                        <i class="{{ ach.icon_class }} text-6xl text-gray-400"></i>
+                        <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">{{ ach.title }}</h3>
+                        <p class="text-gray-500 text-sm mt-1">{{ ach.description }}</p>
+                        <div class="w-full bg-gray-300 rounded-full h-2.5 mt-2">
+                            <div class="bg-yellow-500 h-2.5 rounded-full" style="width: {{ ach.progress_percentage }}%"></div>
+                        </div>
+                        <div class="mt-1 text-xs font-bold text-gray-500">{{ ach.current_progress }} / {{ ach.target_value }}</div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-gray-100 rounded-lg p-6 flex items-center space-x-4 filter grayscale o-75">
+                    <div class="flex-shrink-0 relative">
+                        <i class="{{ ach.icon_class }} text-6xl text-gray-400"></i>
+                        <i class="fas fa-lock absolute bottom-0 right-0 text-gray-500 bg-gray-100 rounded-full p-1"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">{{ ach.title }}</h3>
+                        <p class="text-gray-500 text-sm mt-1">{{ ach.description }}</p>
+                        <div class="mt-2 text-xs font-bold text-gray-500">LOCKED</div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
 
     </div>
 </div>

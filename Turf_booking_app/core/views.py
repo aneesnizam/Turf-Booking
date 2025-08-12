@@ -15,7 +15,7 @@ User = get_user_model()
 import json
 from django.http import JsonResponse ,HttpResponse,HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.db.models import F, Q, Case, When, Value, IntegerField ,Count,Avg
+from django.db.models import F, Q, Case, When, Value, IntegerField ,Count,Avg ,OuterRef, Subquery, ExpressionWrapper, fields
 from haversine import haversine,Unit
 from datetime import datetime, timedelta
 from django.utils import timezone 
@@ -25,6 +25,9 @@ from xhtml2pdf import pisa
 import io
 import qrcode 
 from .utility import get_booking_details
+from .models import Achievement,UserAchievement
+from .achievements_logic import check_all_achievements
+
 
 
 @login_required
@@ -700,7 +703,7 @@ def cancel_booking(request,booking_id):
 
 # -------------------- OWNER DASHBOARD --------------------
 @login_required
-@user_passes_test(lambda u:u.role == 'turf_owner')
+@user_passes_test(lambda u:u.role == 'owner')
 def owner_dashboard(request):
     active_turfs = request.user.turfs.filter(status="active")
     active_counts = len(active_turfs)
@@ -717,6 +720,29 @@ def profile(request):
     booking_data = get_booking_details(request.user)
     favourites_count = request.user.favourites.count()
     total_count = booking_data['completed_booking_count'] + booking_data['upcoming_bookings_count']
+    check_all_achievements(request.user)
+    
+    
+    
+    # --- Achievement Data Fetching ---
+    user_progress = UserAchievement.objects.filter(
+        user=request.user, 
+        achievement=OuterRef('pk')
+    )
+
+    # Get all achievements and annotate them with the user's specific progress
+    achievements = Achievement.objects.annotate(
+        current_progress=Subquery(user_progress.values('current_progress')[:1]),
+        unlocked=Subquery(user_progress.values('unlocked')[:1]),
+        # Calculate progress percentage for the progress bar
+        progress_percentage=ExpressionWrapper(
+            100.0 * F('current_progress') / F('target_value'),
+            output_field=fields.FloatField()
+        )
+    ).order_by('-unlocked', '-progress_percentage') # Show unlocked and in-progress first
+    
+    achievement_unlocked_count = achievements.filter(unlocked=True).count()
+    
     context = {
         'upcoming_bookings': booking_data['upcoming_bookings'][:4],
         'hours_played': booking_data['hours_played'],
@@ -726,7 +752,9 @@ def profile(request):
         'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
         'completed_booking_count': booking_data['completed_booking_count'],
         'favourites_count' : favourites_count,
-        'total_count' : total_count
+        'total_count' : total_count,
+        'achievements' : achievements,
+        'achievement_unlocked_count':achievement_unlocked_count
     }
     
     return render(request, 'profile.html',context)

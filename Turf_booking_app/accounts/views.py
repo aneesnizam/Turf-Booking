@@ -56,6 +56,8 @@ def user_register(request):
 
 
 def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect('home')
     return render(request, 'landing.html')
 
 

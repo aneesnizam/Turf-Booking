@@ -171,7 +171,7 @@ class Booking(models.Model):
         unique_together = ('turf', 'booking_date', 'start_time')
         
 class Rating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE ,related_name="ratings")
     turf = models.ForeignKey(Turf, on_delete=models.CASCADE, related_name="ratings")
     booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="ratings")
     score = models.IntegerField(default=0) # e.g., 1 to 5

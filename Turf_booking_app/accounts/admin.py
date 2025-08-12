@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import User, Turf ,Sport,Rating
+from core.models import Achievement
 
 
 @admin.register(User)
@@ -29,3 +30,9 @@ class SportAdmin(admin.ModelAdmin):
 class RatingAdmin(admin.ModelAdmin):
     list_display = ('score','comment','booking')
     search_fields=('turf__turf_name','user__fullname',)
+    
+    
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ('title','slug','description','icon_class','icon_color_class','target_value')
+    search_fields=('title','slug',)
