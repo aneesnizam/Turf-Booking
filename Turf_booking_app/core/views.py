@@ -60,19 +60,7 @@ def home(request):
 
 
 
-# -------------------- DASHBOARD REDIRECT --------------------
-@login_required
-def dashboard_redirect_view(request):
-    user = request.user
-    if user.is_owner:
-        # Check if the user has at least one verified turf
-        if user.turfs.filter(verification_status='verified').exists():
-            return redirect('owner_dashboard')
-        else:
-            messages.info(
-                request, "Please register and verify at least one turf to access your dashboard. ")
-            return redirect('turf_register')  # No verified turf yet
-    return redirect('home')  # Non-turf owners
+
 
 
 
@@ -759,3 +747,19 @@ def profile_settings(request):
         return redirect("profile")  
 
     return redirect('profile')
+
+
+
+# -------------------- DASHBOARD REDIRECT --------------------
+@login_required
+def dashboard_redirect_view(request):
+    user = request.user
+    if user.role == 'owner':
+        # Check if the user has at least one verified turf
+        if user.turfs.filter(verification_status='verified').exists():
+            return redirect('owner_dashboard')
+        else:
+            messages.info(
+                request, "Please register and verify at least one turf to access your dashboard. ")
+            return redirect('turf_register')  # No verified turf yet
+    return redirect('home')  # Non-turf owners
