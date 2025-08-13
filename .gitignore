@@ -43,3 +43,6 @@ Thumbs.db
 # Environment & Secrets
 # ========================
 Turf_booking_app/.env
+
+
+datas/

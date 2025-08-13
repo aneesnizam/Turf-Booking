@@ -50,6 +50,28 @@
         .message-popup {
             animation: slideDownFadeIn 0.5s ease-out forwards;
         }
+        
+  .rating-stars {
+    display: flex;
+    flex-direction: row-reverse; 
+    justify-content: flex-end;  
+  }
+  .rating-stars input[type="radio"] {
+    display: none;
+  }
+  .rating-stars label {
+    font-size: 2.5rem; 
+    color: #d1d5db;    
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .rating-stars label:hover,
+  .rating-stars label:hover ~ label {
+    color: #facc15; 
+  }
+  .rating-stars input[type="radio"]:checked ~ label {
+    color: #facc15; 
+  }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -394,7 +416,59 @@
   {% endif %}
 </div></div>
 
+<div id="rating-modal" class="fixed inset-0 z-50 hidden items-center justify-center backdrop-blur-sm">
+  <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-bold text-gray-900">Rate Your Experience</h3>
+      <button id="close-modal-btn" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <form id="rating-form" class="mt-4">
+      {% csrf_token %}
+      <input type="hidden" name="booking_id" id="modal-booking-id">
+      
+      <p class="mb-3 text-sm font-medium text-gray-700">How would you rate this turf?</p>
+      
+ 
 
+<div class="rating-stars mb-6 flex flex-row-reverse justify-end space-x-reverse space-x-1">
+    <input type="radio" id="star5" name="score" value="5" class="hidden" />
+    <label for="star5" class="text-3xl">★</label>
+
+    <input type="radio" id="star4" name="score" value="4" class="hidden" />
+    <label for="star4" class="text-3xl">★</label>
+
+    <input type="radio" id="star3" name="score" value="3" class="hidden" />
+    <label for="star3" class="text-3xl">★</label>
+
+    <input type="radio" id="star2" name="score" value="2" class="hidden" />
+    <label for="star2" class="text-3xl">★</label>
+
+    <input type="radio" id="star1" name="score" value="1" class="hidden" />
+    <label for="star1" class="text-3xl">★</label>
+</div>
+
+
+      <div class="mb-6">
+        <label for="comment" class="mb-2 block text-sm font-medium text-gray-700">Add a comment (optional)</label>
+        <textarea id="comment" name="comment" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button id="cancel-rating-btn" type="button" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="submit" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+          Submit Rating
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
  <!-- ========== FAVORITES TAB CONTENT ========== -->
@@ -835,205 +909,267 @@
   </div>
 </footer>
 
-    <script>
+<div id="toast"
+     class="fixed left-1/2 -translate-x-1/2  top-8 px-6 py-4 rounded-lg shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-50 font-medium text-sm min-w-[200px] text-center flex items-center justify-center gap-2">
+    <svg id="toast-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
+    <span id="toast-message"></span>
+</div>
+<script>
+function showToast(message, type = "success") {
+    const toast = document.getElementById('toast');
+    const toastIcon = document.getElementById('toast-icon');
+    const toastMessage = document.getElementById('toast-message');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- Tab switching functionality ---
-            const tabs = document.querySelectorAll('nav.-mb-px a[data-tab]');
-            const tabContents = document.querySelectorAll('.tab-content');
+    toast.classList.remove('bg-green-500', 'bg-red-500', 'opacity-100', 'translate-y-2');
+    toast.classList.add('opacity-0', 'flex');
 
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const tabId = this.getAttribute('data-tab');
+    toastMessage.textContent = message;
 
-                    tabs.forEach(t => {
-                        t.classList.remove('tab-active', 'text-green-600', 'border-green-500');
-                        t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    });
+    if (type === "success") {
+        toast.classList.add('bg-green-500', 'text-white');
+        toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M5 13l4 4L19 7" />`;
+    } else {
+        toast.classList.add('bg-red-500', 'text-white');
+        toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M6 18L18 6M6 6l12 12" />`;
+    }
 
-                    this.classList.add('tab-active', 'text-green-600', 'border-green-500');
-                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    setTimeout(() => {
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100', 'translate-y-2');
+    }, 10);
 
-                    tabContents.forEach(content => {
-                        content.classList.add('hidden');
-                        content.classList.remove('active');
-                    });
+    setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-2');
+        toast.classList.add('opacity-0');
+    }, 3000);
+}
 
-                    document.getElementById(`${tabId}-tab`).classList.remove('hidden');
-                    document.getElementById(`${tabId}-tab`).classList.add('active');
-                });
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Rating Modal & Toast ---
+    const ratingModal = document.getElementById('rating-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const ratingForm = document.getElementById('rating-form');
+    const modalBookingIdInput = document.getElementById('modal-booking-id');
 
-            // --- Modal functionality ---
-            const editProfileBtn = document.getElementById('edit-profile-btn');
-            const changePasswordBtn = document.getElementById('change-password-btn');
-            const editProfileModal = document.getElementById('edit-profile-modal');
-            const changePasswordModal = document.getElementById('change-password-modal');
-            const cancelEditBtn = document.getElementById('cancel-edit-btn');
-            const cancelPasswordBtn = document.getElementById('cancel-password-btn');
+    function openModal(bookingId) {
+        modalBookingIdInput.value = bookingId;
+        ratingModal.classList.remove('hidden');
+        ratingModal.classList.add('flex');
+    }
 
-            function openModal(modalElement) {
-                modalElement.classList.remove('hidden');
-            }
+    function closeModal() {
+        ratingModal.classList.add('hidden');
+        ratingModal.classList.remove('flex');
+        ratingForm.reset();
+    }
 
-            function closeEditProfileModal() {
-                editProfileModal.classList.add('hidden');
-                // Reset profile picture preview if user cancels or clicks outside
-                const modalAvatar = document.getElementById('modal-avatarr');
-                const defaultSrc = "{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}";
-                modalAvatar.src = defaultSrc;
-                // Optionally reset the file input field so selecting the same file again triggers change event
-                const fileInput = document.getElementById('modal-avatar-upload');
-                if (fileInput) {
-                    fileInput.value = ''; // Clears the selected file
-                }
-            }
+    closeModalBtn.addEventListener('click', closeModal);
+    ratingModal.addEventListener('click', (e) => {
+        if (e.target === ratingModal) {
+            closeModal();
+        }
+    });
 
-            function closeChangePasswordModal() {
-                changePasswordModal.classList.add('hidden');
-                // Clear password fields on close
-                document.getElementById('current-password').value = '';
-                document.getElementById('new-password').value = '';
-                document.getElementById('confirm-password').value = '';
-            }
-
-            // Event Listeners for opening modals
-            if (editProfileBtn) {
-                editProfileBtn.addEventListener('click', () => openModal(editProfileModal));
-            }
-            if (changePasswordBtn) {
-                changePasswordBtn.addEventListener('click', () => openModal(changePasswordModal));
-            }
-
-            // Event Listeners for closing modals
-            if (cancelEditBtn) {
-                cancelEditBtn.addEventListener('click', closeEditProfileModal);
-            }
-            if (cancelPasswordBtn) {
-                cancelPasswordBtn.addEventListener('click', closeChangePasswordModal);
-            }
-
-            // Close modals when clicking outside
-            window.addEventListener('click', (e) => {
-                if (e.target === editProfileModal) {
-                    closeEditProfileModal();
-                }
-                if (e.target === changePasswordModal) {
-                    closeChangePasswordModal();
-                }
-            });
-
-            // --- Avatar upload functionality (for preview) ---
-            const modalAvatarUpload = document.getElementById('modal-avatar-upload');
-            const modalAvatar = document.getElementById('modal-avatarr');
-            const profileMainAvatar = document.getElementById('profile-main-avatar');
-
-            function readURL(input, target) {
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        target.src = e.target.result;
-                    }
-                    reader.readAsDataURL(input.files[0]);
-                }
-            }
-            if (modalAvatarUpload) {
-                modalAvatarUpload.addEventListener('change', function() {
-                    readURL(this, modalAvatar);
-                    readURL(this, profileMainAvatar);
-                });
-            }
-
-            // --- Logout confirmation ---
-            const logoutButton = document.getElementById('logout-button');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const confirmLogout = confirm("Are you sure you want to log out?");
-                    if (confirmLogout) {
-                        window.location.href = "{% url 'logout' %}";
-                    }
-                });
-            }
-
-            // --- Django Messages Dismissal ---
-            function setupMessageDismissal() {
-                const messageContainer = document.getElementById('message-container');
-                if (!messageContainer) return;
-
-                const messages = messageContainer.querySelectorAll('[role="alert"]');
-
-                messages.forEach(messageDiv => {
-                    const closeButton = messageDiv.querySelector('.close-button');
-                    if (closeButton) {
-                        closeButton.addEventListener('click', () => {
-                            messageDiv.classList.add('hidden'); // Hide immediately
-                            // Optional: remove after a short delay for smooth transition if needed,
-                            // but 'hidden' directly removes it from layout.
-                            setTimeout(() => messageDiv.remove(), 300); // Remove from DOM after a small delay
-                        });
-                    }
-
-                    // Auto-dismiss after 5 seconds
-                    setTimeout(() => {
-                        messageDiv.classList.add('hidden'); // Hide
-                        setTimeout(() => messageDiv.remove(), 300); // Remove from DOM
-                    }, 6000); // 5000 milliseconds = 5 seconds
-                });
-            }
-
-            setupMessageDismissal(); // Call the function to set up dismissal for messages
-
-
-document.getElementById("fetch-location").addEventListener("click", () => {
-  const query = document.getElementById("place").value;
-  if (!query.trim()) return;
-
-  fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
-    .then(res => res.json())
-    .then(data => {
-      const list = document.getElementById("autocomplete-results");
-      list.innerHTML = "";
-
-      if (data.length === 0) {
-        list.classList.add("hidden");
-        return;
-      }
-
-      data.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item.display_name;
-        li.className = "px-3 py-2 cursor-pointer hover:bg-emerald-100 border-b";
-        li.onclick = () => {
-          document.getElementById("place").value = item.display_name;
-          document.getElementById("latitude").value = item.lat || item.latitude || "";
-          document.getElementById("longitude").value = item.lon || item.longitude || "";
-          list.classList.add("hidden");
+    ratingForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(ratingForm);
+        const data = {
+            booking_id: formData.get('booking_id'),
+            score: formData.get('score'),
+            comment: formData.get('comment'),
         };
-        list.appendChild(li);
-      });
 
-      list.classList.remove("hidden");
-    })
-    .catch(error => {
-      console.error("Error fetching autocomplete:", error);
+        if (!data.score) {
+            showToast('Please select a star rating.', "error");
+            return;
+        }
+
+        try {
+            const response = await fetch("{% url 'submit_rating' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                showToast(result.message, "success");
+                closeModal();
+            } else {
+                showToast(result.message, "error");
+            }
+        } catch (error) {
+            showToast('An unexpected error occurred.', "error");
+        }
+    });
+
+    document.body.addEventListener("click", (e) => {
+        const rateButton = e.target.closest('.rate-btn');
+        if (rateButton) {
+            e.preventDefault();
+            openModal(rateButton.dataset.bookingId);
+        }
+    });
+
+    // --- Tabs ---
+    const tabs = document.querySelectorAll('nav.-mb-px a[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            tabs.forEach(t => {
+                t.classList.remove('tab-active', 'text-green-600', 'border-green-500');
+                t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            this.classList.add('tab-active', 'text-green-600', 'border-green-500');
+            this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+
+    // --- Profile & Password Modals ---
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    const changePasswordBtn = document.getElementById('change-password-btn');
+    const editProfileModal = document.getElementById('edit-profile-modal');
+    const changePasswordModal = document.getElementById('change-password-modal');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const cancelPasswordBtn = document.getElementById('cancel-password-btn');
+
+    function openProfileModal(modalElement) {
+        modalElement.classList.remove('hidden');
+    }
+
+    function closeEditProfileModal() {
+        editProfileModal.classList.add('hidden');
+        const modalAvatar = document.getElementById('modal-avatarr');
+        const defaultSrc = "{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}";
+        modalAvatar.src = defaultSrc;
+        const fileInput = document.getElementById('modal-avatar-upload');
+        if (fileInput) fileInput.value = '';
+    }
+
+    function closeChangePasswordModal() {
+        changePasswordModal.classList.add('hidden');
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+    }
+
+    if (editProfileBtn) editProfileBtn.addEventListener('click', () => openProfileModal(editProfileModal));
+    if (changePasswordBtn) changePasswordBtn.addEventListener('click', () => openProfileModal(changePasswordModal));
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditProfileModal);
+    if (cancelPasswordBtn) cancelPasswordBtn.addEventListener('click', closeChangePasswordModal);
+
+    window.addEventListener('click', (e) => {
+        if (e.target === editProfileModal) closeEditProfileModal();
+        if (e.target === changePasswordModal) closeChangePasswordModal();
+    });
+
+    // --- Avatar Preview ---
+    const modalAvatarUpload = document.getElementById('modal-avatar-upload');
+    const modalAvatar = document.getElementById('modal-avatarr');
+    const profileMainAvatar = document.getElementById('profile-main-avatar');
+    function readURL(input, target) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                target.src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    if (modalAvatarUpload) {
+        modalAvatarUpload.addEventListener('change', function() {
+            readURL(this, modalAvatar);
+            readURL(this, profileMainAvatar);
+        });
+    }
+
+    // --- Logout ---
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm("Are you sure you want to log out?")) {
+                window.location.href = "{% url 'logout' %}";
+            }
+        });
+    }
+
+    // --- Django Messages ---
+    function setupMessageDismissal() {
+        const messageContainer = document.getElementById('message-container');
+        if (!messageContainer) return;
+        const messages = messageContainer.querySelectorAll('[role="alert"]');
+        messages.forEach(messageDiv => {
+            const closeButton = messageDiv.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    messageDiv.classList.add('hidden');
+                    setTimeout(() => messageDiv.remove(), 300);
+                });
+            }
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+                setTimeout(() => messageDiv.remove(), 300);
+            }, 6000);
+        });
+    }
+    setupMessageDismissal();
+
+    // --- Location Autocomplete ---
+    document.getElementById("fetch-location").addEventListener("click", () => {
+        const query = document.getElementById("place").value;
+        if (!query.trim()) return;
+        fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById("autocomplete-results");
+                list.innerHTML = "";
+                if (data.length === 0) {
+                    list.classList.add("hidden");
+                    return;
+                }
+                data.forEach(item => {
+                    const li = document.createElement("li");
+                    li.textContent = item.display_name;
+                    li.className = "px-3 py-2 cursor-pointer hover:bg-emerald-100 border-b";
+                    li.onclick = () => {
+                        document.getElementById("place").value = item.display_name;
+                        document.getElementById("latitude").value = item.lat || item.latitude || "";
+                        document.getElementById("longitude").value = item.lon || item.longitude || "";
+                        list.classList.add("hidden");
+                    };
+                    list.appendChild(li);
+                });
+                list.classList.remove("hidden");
+            })
+            .catch(error => {
+                console.error("Error fetching autocomplete:", error);
+            });
+    });
+
+    // --- Settings Form Edit ---
+    document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
+        .forEach(el => el.disabled = true);
+    document.getElementById("edit-btn").addEventListener("click", function() {
+        document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
+            .forEach(el => el.disabled = false);
+        this.classList.add("hidden");
+        document.getElementById("save-btn").classList.remove("hidden");
     });
 });
+</script>
 
-// Edit → Save toggle
-document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
-  .forEach(el => el.disabled = true);
-
-document.getElementById("edit-btn").addEventListener("click", function() {
-  document.querySelectorAll("#settings-form input, #settings-form select, #settings-form textarea")
-    .forEach(el => el.disabled = false);
-  this.classList.add("hidden");
-  document.getElementById("save-btn").classList.remove("hidden");
-});
-
-            
-        });
-    </script>
 </body>
 </html>
