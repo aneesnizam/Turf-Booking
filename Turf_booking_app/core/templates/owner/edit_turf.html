@@ -1,0 +1,364 @@
+{% extends 'core_base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Edit Turf</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Update your turf information
+        </p>
+      </div>
+      <div>
+        <a href="{% url 'owner_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label for="turf_name" class="block text-sm font-medium text-gray-700">Turf Name</label>
+              <input type="text" readonly  name="turf_name" id="turf_name" value="{{ turf.turf_name }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+
+            <div>
+              <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+              <input type="text" name="contact_number" id="contact_number" value="{{ turf.contact_number }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+
+            <div>
+              <label for="cost_per_hour" class="block text-sm font-medium text-gray-700">Cost Per Hour (₹)</label>
+              <input type="number" name="cost_per_hour" id="cost_per_hour" value="{{ turf.cost_per_hour }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+              <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                {% for value, display in turf.STATUS_CHOICES %}
+                <option value="{{ value }}" {% if turf.status == value %}selected{% endif %}>{{ display }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <label for="address" class="block text-sm font-medium text-gray-700">Address *</label>
+                    <textarea name="address" id="address" rows="3" required placeholder="e.g., Building Name, Street Name, Landmark" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">{{ turf.address }}</textarea>
+                </div>
+
+                <div class="relative sm:col-span-2" id="place-field">
+                    <label for="location-search" class="block text-sm font-medium text-gray-700 mb-1">Search for Location</label>
+                    <div class="flex gap-2 items-start">
+                        <input type="text" value="{{turf.location}}" id="location-search" name="location" placeholder="Type a place and click Get" class="input_fields flex-grow h-10 px-3 py-2 border rounded-lg" autocomplete="off">
+                        <button type="button" id="fetch-location" class="px-4 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-200 ease-in-out flex items-center">Get</button>
+                    </div>
+                    <ul id="autocomplete-results" class="absolute bg-white border rounded shadow mt-1 w-full max-h-[200px] overflow-auto z-50 hidden"></ul>
+                </div>
+                
+                <div class="sm:col-span-2 hidden" id="auto-message">
+                    <p class="text-sm text-yellow-800 bg-yellow-50 p-3 rounded-lg flex items-center gap-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                        <span>The address is auto-filled. Please review all fields, especially the <strong>District</strong>, to ensure they are correct.</span>
+                    </p>
+                </div>
+
+                <input type="hidden" name="latitude" id="latitude" value="{{ turf.latitude }}">
+                <input type="hidden" name="longitude" id="longitude" value="{{ turf.longitude }}">
+
+                <div>
+                    <label for="place" class="block text-sm font-medium text-gray-700">Place / Locality *</label>
+                    <input type="text" name="place" id="place" value="{{ turf.place }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700">City *</label>
+                    <input type="text" name="city" id="city" value="{{ turf.city }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div>
+                    <label for="district" class="block text-sm font-medium text-gray-700">District *</label>
+                    <input type="text" name="district" id="district" value="{{ turf.district }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div>
+                    <label for="pincode" class="block text-sm font-medium text-gray-700">Pincode *</label>
+                    <input type="text" name="pincode" id="pincode" value="{{ turf.pincode }}" required maxlength="6" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Timing Information</h3>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label for="opening_time" class="block text-sm font-medium text-gray-700">Opening Time</label>
+              <input type="time" name="opening_time" id="opening_time" value="{{ turf.opening_time|time:'H:i' }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+
+            <div>
+              <label for="closing_time" class="block text-sm font-medium text-gray-700">Closing Time</label>
+              <input type="time" name="closing_time" id="closing_time" value="{{ turf.closing_time|time:'H:i' }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Available Sports</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {% for sport in all_sports %}
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="sport_{{ sport.id }}" name="sports" type="checkbox" value="{{ sport.id }}" 
+                  {% if sport in turf.sports.all %}checked{% endif %}
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="sport_{{ sport.id }}" class="font-medium text-gray-700">{{ sport.name }}</label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Turf Images</h3>
+            
+            <div class="mb-6">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Current Images</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {% for image in turf.images.all %}
+                    <div class="relative group">
+                        <img src="{{ image.image.url }}" alt="Turf Image" class="w-full h-32 object-cover rounded-md">
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="button" onclick="confirmDeleteImage('{{ image.id }}')" class="text-white bg-red-500 hover:bg-red-600 rounded-full p-2">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-gray-500">No images uploaded yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Add New Images (Max 3)</h4>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div class="space-y-1 text-center w-full">
+                        <div class="flex text-sm text-gray-600 justify-center">
+                            <label for="images" class="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none">
+                                <span>Click to upload</span>
+                                <input id="images" name="images" type="file" multiple accept="image/*" class="sr-only" onchange="previewImages(this)">
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG up to 5MB each</p>
+
+                        <div id="imagePreview" class="mt-3 flex flex-wrap gap-4 justify-center">
+                            </div>
+                    </div>
+                </div>
+                <p class="text-[12px] pl-2 text-gray-600">
+                    <strong>Tip:</strong> Select multiple photos together to preview all. Selecting one-by-one will show only the last one, but all will be uploaded.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="flex justify-end">
+          <button type="button" onclick="turf_delete.showModal()" class="mr-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            <i class="fas fa-trash mr-2"></i> Delete Turf
+          </button>
+          <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <i class="fas fa-save mr-2"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<dialog id="delete_image" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Confirm Image Deletion</h3>
+    <p class="py-4">Are you sure you want to delete this image?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <a id="confirmDeleteBtn" href="#" class="btn bg-red-600 text-white hover:bg-red-700">
+        Yes, Delete
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="turf_delete" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Confirm Turf Deletion</h3>
+    <p class="py-4">Are you sure you want to delete this turf? This action cannot be undone.</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <a href="{% url 'delete_turf' turf.id %}" class="btn bg-red-600 text-white hover:bg-red-700">
+        Yes, Delete
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  // Script for deleting existing images
+  function confirmDeleteImage(imageId) {
+    document.getElementById('confirmDeleteBtn').href = `/owner_dashboard/delete_image/${imageId}`;
+    document.getElementById('delete_image').showModal();
+  }
+
+  // --- Location Autocomplete Script ---
+  const searchInput = document.getElementById("location-search");
+  const fetchButton = document.getElementById("fetch-location");
+  const automessage = document.getElementById("auto-message");
+
+  fetchButton.addEventListener("click", () => {
+    const query = searchInput.value;
+    if (!query.trim()) return;
+
+    // Assuming the autocomplete URL is relative to the current path
+   fetch("{% url 'autocomplete_place' %}?q=" + encodeURIComponent(query))
+        .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch'))
+        .then(data => {
+            const list = document.getElementById("autocomplete-results");
+            list.innerHTML = "";
+
+            if (!Array.isArray(data) || data.length === 0) {
+                list.classList.add("hidden");
+                if (data && data.error) {
+                    console.error("Server error:", data.error);
+                    list.innerHTML = `<li class="px-3 py-2 text-red-600">Error: ${data.error}</li>`;
+                    list.classList.remove("hidden");
+                }
+                return;
+            }
+
+            data.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item.display_name;
+                li.className = "px-3 py-2 cursor-pointer hover:bg-green-100 border-b";
+
+                li.onclick = () => {
+                    automessage.classList.remove("hidden");
+                    document.getElementById("place").value = item.place || "";
+                    document.getElementById("city").value = item.city || "";
+                    document.getElementById("district").value = item.district || "";
+                    document.getElementById("pincode").value = item.pincode || "";
+                    document.getElementById("latitude").value = item.latitude || "";
+                    document.getElementById("longitude").value = item.longitude || "";
+                    
+                    searchInput.value = item.display_name;
+                    list.classList.add("hidden");
+                };
+                list.appendChild(li);
+            });
+            list.classList.remove("hidden");
+        })
+        .catch(error => {
+            console.error("Error fetching autocomplete:", error);
+            const list = document.getElementById("autocomplete-results");
+            list.innerHTML = `<li class="px-3 py-2 text-red-600">Request failed.</li>`;
+            list.classList.remove("hidden");
+        });
+  });
+
+  document.addEventListener("click", function (event) {
+    const resultsList = document.getElementById("autocomplete-results");
+    const searchField = document.getElementById("place-field");
+    if (searchField && !searchField.contains(event.target)) {
+        resultsList.classList.add("hidden");
+    }
+  });
+
+
+  // --- Image Preview Script ---
+  let selectedFiles = [];
+
+  function previewImages(input) {
+      const previewContainer = document.getElementById("imagePreview");
+      previewContainer.innerHTML = ""; // Clear previous previews
+
+      if (input.files && input.files.length > 0) {
+          selectedFiles = Array.from(input.files).slice(0, 3); // Max 3 files
+
+          selectedFiles.forEach((file, index) => {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                  const wrapper = document.createElement("div");
+                  wrapper.className = "relative group w-24 h-24";
+
+                  const img = document.createElement("img");
+                  img.src = e.target.result;
+                  img.className = "w-full h-full object-cover rounded-md border border-gray-200";
+                  
+                  const removeBtn = document.createElement("button");
+                  removeBtn.type = "button";
+                  removeBtn.className = "absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity";
+                  removeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`;
+                  removeBtn.onclick = () => removeImage(index);
+
+                  wrapper.appendChild(img);
+                  wrapper.appendChild(removeBtn);
+                  previewContainer.appendChild(wrapper);
+              };
+              reader.readAsDataURL(file);
+          });
+          updateFileInput();
+      }
+  }
+
+  function removeImage(indexToRemove) {
+      selectedFiles.splice(indexToRemove, 1); // Remove file from our array
+      updateFileInput();
+      // Re-render the previews from the updated selectedFiles array
+      const fileInput = document.getElementById('images');
+      previewImages(fileInput);
+  }
+  
+  function updateFileInput() {
+      const dataTransfer = new DataTransfer();
+      selectedFiles.forEach(file => {
+          dataTransfer.items.add(file);
+      });
+      document.getElementById('images').files = dataTransfer.files;
+  }
+  
+  // Initial render of empty slots if needed
+  document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('imagePreview').children.length === 0) {
+      renderEmptySlots();
+    }
+  });
+
+  function renderEmptySlots() {
+      const previewContainer = document.getElementById("imagePreview");
+      previewContainer.innerHTML = "";
+      for (let i = 0; i < 3; i++) {
+          const emptySlot = document.createElement("div");
+          emptySlot.className = "w-24 h-24 bg-gray-100 rounded-md border border-dashed border-gray-300 flex items-center justify-center text-gray-400";
+          emptySlot.innerHTML = '<span class="text-xs">New image</span>';
+          previewContainer.appendChild(emptySlot);
+      }
+  }
+
+</script>
+{% endblock %}

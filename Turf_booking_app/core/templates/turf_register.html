@@ -1,17 +1,5 @@
 {% extends 'core_base/base.html' %} {% load static %} {% block content %} 
-{% if messages %}
-<div class="flex justify-center px-6 pt-1">
-  <div class="w-full">
-    {% for message in messages %}
-    <div
-      class="{% if message.tags == 'success' %}bg-green-100 border-l-4 border-green-500 text-green-800{% elif message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-800{% elif message.tags == 'info' %}bg-blue-100 border-l-4 border-blue-500 text-blue-800{% else %}bg-gray-100 border-l-4 border-gray-500 text-gray-800{% endif %} p-4 rounded shadow"
-    >
-      {{ message }}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
+
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
   <!-- Verification Status Alerts -->
   {% if request.user.turfs.exists %} {% for turf in request.user.turfs.all %} 
@@ -414,7 +402,7 @@
     const query = searchInput.value;
     if (!query.trim()) return;
 
-    fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
+    fetch("{% url 'autocomplete_place' %}?q=" + encodeURIComponent(query))
       .then((res) => {
         if (!res.ok) {
           // If the server response is bad (e.g., status 500), handle it as an error

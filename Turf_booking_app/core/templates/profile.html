@@ -1135,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("fetch-location").addEventListener("click", () => {
         const query = document.getElementById("place").value;
         if (!query.trim()) return;
-        fetch(`autocomplete-place/?q=${encodeURIComponent(query)}`)
+        fetch("{% url 'autocomplete_place' %}?q=" + encodeURIComponent(query))
             .then(res => res.json())
             .then(data => {
                 const list = document.getElementById("autocomplete-results");

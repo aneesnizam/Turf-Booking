@@ -18,8 +18,7 @@ urlpatterns = [
     path('owner_dashboard/', views.owner_dashboard, name="owner_dashboard"),
     path('dashboard/', views.dashboard_redirect_view, name='dashboard_redirect'),
     path('turf_details/<int:turf_id>', views.turf_details, name="turf_details"),
-    path("turf_register/autocomplete-place/",view1.autocomplete_place, name="autocomplete_place"),
-    path("profile/autocomplete-place/",view1.autocomplete_place, name="autocomplete_place"),
+    path("autocomplete-place/",view1.autocomplete_place, name="autocomplete_place"),
     path('update-location/', views.update_user_location,name='update_user_location'),
     path('favorites/', views.favorites, name="favorites"),
     path('toggle-favourite/<int:turf_id>/',views.toggle_favourite, name='toggle_favourite'),
@@ -33,6 +32,9 @@ urlpatterns = [
     path('profile_settings/',views.profile_settings,name="profile_settings"),
     path('recent_bookings/',views.recent_bookings,name="recent_bookings"),
     path('owner_dashboard/delete_turf/<int:turf_id>/', views.delete_turf, name="delete_turf"),
+    path('owner_dashboard/edit_turf/<int:turf_id>/', views.edit_turf, name="edit_turf"),
+      path('owner_dashboard/delete_image/<int:image_id>/', views.delete_image, name="delete_image"),
+    
 
 ]
 
