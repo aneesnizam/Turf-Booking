@@ -30,7 +30,9 @@ urlpatterns = [
     path('cancel-booking/<int:booking_id>/',views.cancel_booking, name="cancel_booking"),
     path('bookings/<str:booking_token>/qr/',views.booking_qr, name="booking_qr"),
     path('reviews/<int:review_id>/delete/', views.delete_review, name='delete_review'),
-    path('profile_settings/',views.profile_settings,name="profile_settings")
+    path('profile_settings/',views.profile_settings,name="profile_settings"),
+    path('recent_bookings/',views.recent_bookings,name="recent_bookings"),
+    path('owner_dashboard/delete_turf/<int:turf_id>/', views.delete_turf, name="delete_turf"),
 
 ]
 

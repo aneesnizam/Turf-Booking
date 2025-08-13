@@ -952,6 +952,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const ratingForm = document.getElementById('rating-form');
     const modalBookingIdInput = document.getElementById('modal-booking-id');
+    const cancelButtons = document.getElementById("cancel-rating-btn");
+   
+ 
 
     function openModal(bookingId) {
         modalBookingIdInput.value = bookingId;
@@ -964,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ratingModal.classList.remove('flex');
         ratingForm.reset();
     }
-
+    cancelButtons.addEventListener('click', closeModal);
     closeModalBtn.addEventListener('click', closeModal);
     ratingModal.addEventListener('click', (e) => {
         if (e.target === ratingModal) {
@@ -1014,6 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
             openModal(rateButton.dataset.bookingId);
         }
     });
+
 
     // --- Tabs ---
     const tabs = document.querySelectorAll('nav.-mb-px a[data-tab]');

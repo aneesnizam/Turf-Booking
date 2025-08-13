@@ -15,7 +15,7 @@ User = get_user_model()
 import json
 from django.http import JsonResponse ,HttpResponse,HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.db.models import F, Q, Case, When, Value, IntegerField ,Count,Avg ,OuterRef, Subquery, ExpressionWrapper, fields
+from django.db.models import F, Q, Case, When, Value, IntegerField ,Count,Avg ,OuterRef, Subquery, ExpressionWrapper, fields,Sum
 from haversine import haversine,Unit
 from datetime import datetime, timedelta
 from django.utils import timezone 
@@ -701,16 +701,19 @@ def cancel_booking(request,booking_id):
 
 
 
-# -------------------- OWNER DASHBOARD --------------------
+# -------------------- DASHBOARD REDIRECT --------------------
 @login_required
-@user_passes_test(lambda u:u.role == 'owner')
-def owner_dashboard(request):
-    active_turfs = request.user.turfs.filter(status="active")
-    active_counts = len(active_turfs)
-    context = {
-        'active_counts': active_counts
-    }
-    return render(request, 'owner_dashboard.html', context)
+def dashboard_redirect_view(request):
+    user = request.user
+    if user.role == 'owner':
+        # Check if the user has at least one verified turf
+        if user.turfs.filter(verification_status='verified').exists():
+            return redirect('owner_dashboard')
+        else:
+            messages.info(
+                request, "Please register and verify at least one turf to access your dashboard. ")
+            return redirect('turf_register')  # No verified turf yet
+    return redirect('home')  # Non-turf owners
 
 
 
@@ -778,16 +781,30 @@ def profile_settings(request):
 
 
 
-# -------------------- DASHBOARD REDIRECT --------------------
+# -------------------- OWNER DASHBOARD --------------------
 @login_required
-def dashboard_redirect_view(request):
-    user = request.user
-    if user.role == 'owner':
-        # Check if the user has at least one verified turf
-        if user.turfs.filter(verification_status='verified').exists():
-            return redirect('owner_dashboard')
-        else:
-            messages.info(
-                request, "Please register and verify at least one turf to access your dashboard. ")
-            return redirect('turf_register')  # No verified turf yet
-    return redirect('home')  # Non-turf owners
+@user_passes_test(lambda u:u.role == 'owner')
+def owner_dashboard(request):
+    active_turfs = request.user.turfs
+    active_counts = active_turfs.count()
+    active_turfs = active_turfs.annotate(total = Sum('bookings__total_cost')).order_by('-total')
+    
+    
+    context = {
+        'active_counts': active_counts,
+        'turfs' : active_turfs
+    }
+    return render(request, 'owner_dashboard.html', context)
+
+
+
+def recent_bookings(request):
+    return render(request,'recent_bookings.html')
+
+
+def delete_turf(request,turf_id):
+    turf = Turf.objects.get(id = turf_id,owner = request.user)
+    if turf:
+        turf.delete()
+    return redirect('owner_dashboard')
+    
