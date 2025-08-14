@@ -785,14 +785,37 @@ def profile_settings(request):
 @login_required
 @user_passes_test(lambda u:u.role == 'owner')
 def owner_dashboard(request):
-    active_turfs = request.user.turfs
-    active_counts = active_turfs.count()
-    active_turfs = active_turfs.annotate(total = Sum('bookings__total_cost')).order_by('-total')
+    all_turfs = request.user.turfs
+    turfs_counts = all_turfs.count()
+    all_turfs = all_turfs.annotate(total = Sum('bookings__total_cost')).order_by('-total')
+    total_revenue_data = all_turfs.aggregate(grand_total = Sum('total'))
+    total_revenue = total_revenue_data['grand_total'] or 0
+    total_average_rating_data = all_turfs.aggregate(avg_rating=Avg('ratings__score'))
+    total_average_rating = total_average_rating_data['avg_rating'] or 0.0
+    total_booking = Booking.objects.filter(turf__owner = request.user).count()
+    today = timezone.now().date()
+    todays_booking = Booking.objects.filter(turf__owner = request.user,booking_date=today)
+    todays_booking_count = todays_booking.count()
+    today_revenue_data = todays_booking.aggregate(revenue = Sum('total_cost'))
+    today_revenue = today_revenue_data['revenue'] or 0
+    thirty_days_ago = timezone.now().date() - timedelta(days=30)
+    recent_bookings = Booking.objects.filter(
+    turf__owner=request.user,
+    booking_date__gte=thirty_days_ago  # Filter for bookings on or after this date
+).order_by('-booking_date', '-start_time')[:5] 
+    
     
     
     context = {
-        'active_counts': active_counts,
-        'turfs' : active_turfs
+        'active_counts': turfs_counts,
+        'turfs' : all_turfs,
+        'total_average_rating':total_average_rating,
+        'total_revenue':total_revenue,
+        'total_booking':total_booking,
+        'todays_booking':todays_booking_count,
+        'today_revenue':today_revenue,
+        'recent_bookings': recent_bookings
+        
     }
     return render(request, 'owner/owner_dashboard.html', context)
 

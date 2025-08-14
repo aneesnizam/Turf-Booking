@@ -32,7 +32,7 @@
               Today's Bookings
             </dt>
             <dd class="flex items-baseline">
-              <div class="text-2xl font-semibold text-gray-900">12</div>
+              <div class="text-2xl font-semibold text-gray-900">{{todays_booking}}</div>
             </dd>
           </div>
         </div>
@@ -50,7 +50,7 @@
               Today's Revenue
             </dt>
             <dd class="flex items-baseline">
-              <div class="text-2xl font-semibold text-gray-900">₹8,400</div>
+              <div class="text-2xl font-semibold text-gray-900">₹{{today_revenue}}</div>
             </dd>
           </div>
         </div>
@@ -86,7 +86,7 @@
               Average Rating
             </dt>
             <dd class="flex items-baseline">
-              <div class="text-2xl font-semibold text-gray-900">4.7</div>
+              <div class="text-2xl font-semibold text-gray-900">{{total_average_rating}}</div>
               <span class="ml-2 text-sm font-medium text-gray-500">/ 5</span>
             </dd>
           </div>
@@ -214,84 +214,59 @@
       <ul class="divide-y divide-gray-200">
         
         <!-- Booking 1 -->
+         {% for booking in recent_bookings %}
         <li class="hover:bg-gray-50">
           <div class="px-4 py-4 sm:px-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex items-center">
                 <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
-                  <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="">
+                 {% with first_image=booking.turf.images.first %}
+  {% if first_image %}
+    <img
+      class="h-full w-full object-cover"
+      src="{{ first_image.image.url }}"
+      alt="Turf image"
+    />
+  {% else %}
+  
+    <div class="h-full w-full flex items-center justify-center bg-gray-100">
+    <p class="text-sm font-medium text-gray-500">No Image</p>
+</div>
+  {% endif %}
+{% endwith %}
                 </div>
                 <div class="ml-4">
-                  <div class="text-lg font-medium text-gray-900"> Football Arena</div>
+                  <div class="text-lg font-medium text-gray-900"> {{ booking.turf.turf_name }}</div>
                   <div class="text-sm text-gray-500 mt-1">
                     <span class="inline-flex items-center">
-                      <i class="fas fa-user mr-1.5"></i> sabir Kumar
+                      <i class="fas fa-user mr-1.5"></i> {{ booking.user.fullname }}
                     </span>
                     <span class="inline-flex items-center ml-3">
-                      <i class="fas fa-calendar-day mr-1.5"></i> Today, 5:00 PM - 7:00 PM
+                      <i class="fas fa-calendar-day mr-1.5"></i> {{ booking.human_date }}, {{booking.start_time|date:"g:i A"}} - {{booking.end_time|date:"g:i A"}}
                     </span>
                   </div>
                 </div>
               </div>
               <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
                 <div class="text-right">
-                  <div class="text-lg font-bold text-gray-900">₹1600</div>
+                  <div class="text-lg font-bold text-gray-900">₹{{booking.total_cost}}</div>
                   <div class="text-sm text-green-600 font-medium">
-                    <i class="fas fa-check-circle mr-1"></i> Confirmed
+                    <i class="fas fa-check-circle mr-1"></i> {{booking.status}}
                   </div>
                 </div>
                 <div class="mt-4 sm:mt-0 flex space-x-3">
-                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  <a href="{% url 'view_booking_detail' booking.verify_token %}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     <i class="fas fa-receipt mr-2"></i> Invoice
-                  </button>
-                  <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-phone mr-2"></i> Contact
-                  </button>
+                  </a>
+                  
                 </div>
               </div>
             </div>
           </div>
         </li>
-
-        <!-- Booking 2 -->
-        <!-- <li class="hover:bg-gray-50">
-          <div class="px-4 py-4 sm:px-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-200">
-                  <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1605&q=80" alt="">
-                </div>
-                <div class="ml-4">
-                  <div class="text-lg font-medium text-gray-900">Cricket Masters</div>
-                  <div class="text-sm text-gray-500 mt-1">
-                    <span class="inline-flex items-center">
-                      <i class="fas fa-user mr-1.5"></i> Sunil Gavaskar
-                    </span>
-                    <span class="inline-flex items-center ml-3">
-                      <i class="fas fa-calendar-day mr-1.5"></i> Tomorrow, 3:00 PM - 5:00 PM
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
-                <div class="text-right">
-                  <div class="text-lg font-bold text-gray-900">₹2400</div>
-                  <div class="text-sm text-yellow-600 font-medium">
-                    <i class="fas fa-clock mr-1"></i> Pending
-                  </div>
-                </div>
-                <div class="mt-4 sm:mt-0 flex space-x-3">
-                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-check mr-2"></i> Approve
-                  </button>
-                  <button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-times mr-2"></i> Reject
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </li> -->
+{% endfor %}
+       
+  
       </ul>
     </div>
   </div>

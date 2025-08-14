@@ -178,36 +178,7 @@
 </nav>
   </div>
 </div>
-<!-- <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const tabLinks = document.querySelectorAll('.tab-link');
-  
-  tabLinks.forEach(tab => {
-    tab.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // Remove active classes from all tabs and content
-      document.querySelectorAll('.tab-link').forEach(t => {
-        t.classList.remove('active', 'border-green-500', 'text-green-600');
-        t.classList.add('border-transparent', 'text-gray-500');
-      });
-      
-      document.querySelectorAll('.tab-content').forEach(c => {
-        c.classList.add('hidden');
-        c.classList.remove('active');
-      });
-      
-      // Add active classes to clicked tab and corresponding content
-      this.classList.add('active', 'border-green-500', 'text-green-600');
-      this.classList.remove('border-transparent', 'text-gray-500');
-      
-      const tabName = this.getAttribute('data-tab');
-      document.getElementById(`${tabName}-content`).classList.remove('hidden');
-      document.getElementById(`${tabName}-content`).classList.add('active');
-    });
-  });
-});
-</script> -->
+
 
 
 <!-- Bookings List -->
@@ -215,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="nav_wrapper" class="bg-white shadow overflow-hidden sm:rounded-lg">
      <!-- Your existing upcoming bookings content -->
       
-    <div id="upcoming-content" class="tab-content active">
+    <div id="upcoming-content" class="booking-tab-panel active">
         {% if upcoming_bookings %}
   <ul class="divide-y divide-gray-200">
       <!-- Upcoming Booking 1 -->
@@ -301,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
  <!-- Content for completed bookings -->
-<div id="completed-content" class="tab-content hidden">
+<div id="completed-content" class="booking-tab-panel hidden">
     {% if completed_page_obj %}
 {% include 'partials/completed_bookings.html' %}
 
@@ -382,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 <!-- Content for cancelled bookings -->
-<div id="cancelled-content" class="tab-content hidden">
+<div id="cancelled-content" class="booking-tab-panel hidden">
     {% if cancelled_bookings %}
       <ul class="divide-y divide-gray-200">
             {% for booking in cancelled_bookings %}
@@ -519,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 t.classList.add('border-transparent', 'text-gray-500');
             });
             
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.booking-tab-panel').forEach(c => c.classList.add('hidden'));
             
             this.classList.add('active', 'border-green-500', 'text-green-600');
             const tabName = this.getAttribute('data-tab');
