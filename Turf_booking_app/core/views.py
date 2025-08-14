@@ -15,7 +15,7 @@ User = get_user_model()
 import json
 from django.http import JsonResponse ,HttpResponse,HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.db.models import F, Q, Case, When, Value, IntegerField ,Avg ,OuterRef, Subquery, ExpressionWrapper, fields,Sum
+from django.db.models import F, Q, Case, When, Value, IntegerField ,Avg ,OuterRef, Subquery, ExpressionWrapper, fields,Sum,Count
 from haversine import haversine,Unit
 from datetime import datetime, timedelta
 from django.utils import timezone 
@@ -781,46 +781,91 @@ def profile_settings(request):
 
 
 
+
 # -------------------- OWNER DASHBOARD --------------------
 @login_required
-@user_passes_test(lambda u:u.role == 'owner')
+@user_passes_test(lambda u: u.role == 'owner')
 def owner_dashboard(request):
-    all_turfs = request.user.turfs
-    turfs_counts = all_turfs.count()
-    all_turfs = all_turfs.annotate(total = Sum('bookings__total_cost')).order_by('-total')
-    total_revenue_data = all_turfs.aggregate(grand_total = Sum('total'))
-    total_revenue = total_revenue_data['grand_total'] or 0
-    total_average_rating_data = all_turfs.aggregate(avg_rating=Avg('ratings__score'))
-    total_average_rating = total_average_rating_data['avg_rating'] or 0.0
-    total_booking = Booking.objects.filter(turf__owner = request.user).count()
+  
+    owner = request.user
+
+    # --- 1. Get Base Querysets ---
+    owner_turfs = Turf.objects.filter(owner=owner)
+    active_turfs = owner_turfs.filter(verification_status = 'verified')
+    owner_bookings = Booking.objects.filter(turf__owner=owner)
+
+    # --- 2. Calculate All-Time Statistics ---
+    turf_stats = owner_turfs.aggregate(
+        turf_count=Count('id'),
+        total_avg_rating=Avg('ratings__score')
+    )
+    booking_stats = owner_bookings.aggregate(
+        total_bookings_count=Count('id'),
+        total_revenue=Sum('total_cost')
+    )
+
+    # --- 3. Calculate Today's Statistics ---
     today = timezone.now().date()
-    todays_booking = Booking.objects.filter(turf__owner = request.user,booking_date=today)
-    todays_booking_count = todays_booking.count()
-    today_revenue_data = todays_booking.aggregate(revenue = Sum('total_cost'))
-    today_revenue = today_revenue_data['revenue'] or 0
+    today_stats = owner_bookings.filter(booking_date=today).aggregate(
+        count=Count('id'),
+        revenue=Sum('total_cost')
+    )
+
+    # --- 4. Handle Sorting for the Turfs Table ---
+    sort_by = request.GET.get('sort_by', 'revenue') # Default sort by revenue
+    sort_order = request.GET.get('order', 'desc')   # Default sort descending
+    
+    # Annotate the turf list with all the data needed for display and sorting
+    turfs_for_template = owner_turfs.annotate(
+        revenue=Sum('bookings__total_cost'),
+        booking_count=Count('bookings'),
+        avg_rating=Avg('ratings__score')
+    )
+
+    # Apply sorting based on the URL parameters
+    valid_sorts = ['revenue', 'booking_count', 'avg_rating']
+    if sort_by in valid_sorts:
+        if sort_order == 'desc':
+            turfs_for_template = turfs_for_template.order_by(F(sort_by).desc(nulls_last=True))
+        else:
+            turfs_for_template = turfs_for_template.order_by(F(sort_by).asc(nulls_first=True))
+
+    # --- 5. Get and Paginate All Customer Reviews ---
+    all_reviews_list = Rating.objects.filter(
+        booking__turf__owner=owner
+    ).select_related('user', 'booking__turf').order_by('-created_at')
+    
+    paginator = Paginator(all_reviews_list, 10) 
+    page_number = request.GET.get('page')
+    paginated_reviews = paginator.get_page(page_number)
+
+
     thirty_days_ago = timezone.now().date() - timedelta(days=30)
     recent_bookings = Booking.objects.filter(
     turf__owner=request.user,
-    booking_date__gte=thirty_days_ago  # Filter for bookings on or after this date
-).order_by('-booking_date', '-start_time')[:5] 
+    booking_date__gte=thirty_days_ago 
+    ).order_by('-booking_date', '-start_time')[:3] 
     
     
-    
+    # --- 6. Assemble the Context ---
     context = {
-        'active_counts': turfs_counts,
-        'turfs' : all_turfs,
-        'total_average_rating':total_average_rating,
-        'total_revenue':total_revenue,
-        'total_booking':total_booking,
-        'todays_booking':todays_booking_count,
-        'today_revenue':today_revenue,
-        'recent_bookings': recent_bookings
-        
+        'active_counts': active_turfs.count() or 0,
+        'total_average_rating': turf_stats['total_avg_rating'] or 0.0,
+        'total_booking': booking_stats['total_bookings_count'] or 0,
+        'total_revenue': booking_stats['total_revenue'] or 0,
+        'todays_booking': today_stats['count'] or 0,
+        'today_revenue': today_stats['revenue'] or 0,
+        'turfs': turfs_for_template,
+        'all_reviews': paginated_reviews, 
+        'sort_by': sort_by,             
+        'sort_order': sort_order, 
+        'recent_bookings':recent_bookings     
     }
     return render(request, 'owner/owner_dashboard.html', context)
 
 
 
+# -------------------- Owner Turfs Recent Bookings --------------------
 @login_required
 @user_passes_test(lambda u:u.role == 'owner')
 def recent_bookings(request):
@@ -886,7 +931,8 @@ def edit_turf(request, turf_id):
         return render(request, 'owner/edit_turf.html', context)
 
     
-
+    
+# -------------------- Delete TURF --------------------
 @login_required
 @user_passes_test(lambda u:u.role == 'owner')
 def delete_turf(request,turf_id):
@@ -897,6 +943,7 @@ def delete_turf(request,turf_id):
 
 
 
+# -------------------- Delete Turf Image --------------------
 @login_required
 @user_passes_test(lambda u:u.role == 'owner')
 def delete_image(request,image_id):
