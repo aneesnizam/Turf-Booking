@@ -844,7 +844,7 @@ def owner_dashboard(request):
     recent_bookings = Booking.objects.filter(
     turf__owner=request.user,
     booking_date__gte=thirty_days_ago 
-    ).order_by('-booking_date', '-start_time')[:3] 
+    ).order_by('-booking_date', '-start_time')[:4] 
     
     
     # --- 6. Assemble the Context ---
