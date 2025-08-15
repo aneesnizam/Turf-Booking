@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turf Admin - {% block title %}Dashboard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar { transition: all 0.3s; }
+        .sidebar-collapsed { width: 80px; }
+        .sidebar-collapsed .sidebar-text, .sidebar-collapsed .logo-text { display: none; }
+        .sidebar-collapsed .menu-item { justify-content: center; }
+        .content { transition: all 0.3s; }
+        .content-expanded { margin-left: 80px; }
+        /* Style for the active menu link */
+        .active-menu {
+            background-color: #3B82F6; /* blue-500 */
+            color: white !important;
+        }
+        .active-menu:hover {
+            background-color: #2563EB !important; /* blue-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar" class="sidebar bg-gray-800 text-white w-64 fixed h-full flex flex-col">
+            <div class="p-4 flex items-center space-x-2 border-b border-gray-700">
+                <div class="bg-blue-500 p-2 rounded-lg">
+                    <i class="fas fa-futbol text-white"></i>
+                </div>
+                <span class="logo-text text-xl font-bold">Turf Admin</span>
+            </div>
+
+            <div class="p-4 flex items-center space-x-3 border-b border-gray-700">
+                {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-full w-10 h-10 object-cover">
+                {% else %}
+                    <div class="rounded-full w-10 h-10 bg-purple-600 flex items-center justify-center text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+              <div class="sidebar-text">
+                    <div class="font-medium">Admin User</div>
+                    <div class="text-xs text-gray-400">Super Admin</div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1 px-2">
+                    {% with current_url=request.resolver_match.url_name %}
+                    <li>
+                        <a href="{% url 'admin_dashboard' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'admin_dashboard' %}active-menu{% endif %}">
+                            <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'users_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'users_admin' %}active-menu{% endif %}">
+                            <i class="fas fa-users w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Users</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'owners_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'owners_admin' %}active-menu{% endif %}">
+                            <i class="fas fa-user-tie w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Owners</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'turfs_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'turfs_admin' %}active-menu{% endif %}">
+                            <i class="fas fa-map-marked-alt w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Turfs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'bookings_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'bookings_admin' %}active-menu{% endif %}">
+                            <i class="fas fa-calendar-check w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Bookings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'reviews_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'reviews_admin' %}active-menu{% endif %}">
+                            <i class="fas fa-star w-6 text-center"></i>
+                            <span class="sidebar-text ml-3">Reviews</span>
+                        </a>
+                    </li>
+                    {% endwith %}
+                </ul>
+            </nav>
+
+            <div class="p-4 border-t border-gray-700">
+                <button id="toggle-sidebar" class="w-full flex items-center justify-center p-2 rounded-lg hover:bg-gray-700">
+                    <i class="fas fa-chevron-left w-6 text-center"></i>
+                    <span class="sidebar-text ml-3">Collapse</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="content" class="content flex-1 overflow-auto ml-64 ">
+            <header class="bg-white shadow-sm">
+                <div class="flex justify-between items-center p-4">
+                    <div class="flex items-center space-x-4">
+                        <button id="mobile-menu-button" class="md:hidden text-gray-500">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <div id="user-menu-button" class="flex items-center space-x-2 cursor-pointer">
+                                {% if request.user.profile_picture %}
+                                    <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-full w-8 h-8 object-cover">
+                                {% else %}
+                                    <div class="rounded-full w-8 h-8 bg-purple-600 flex items-center justify-center text-white">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <span class="hidden md:inline">Admin</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-4 ">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+      
+        
+        // Toggle sidebar
+        document.getElementById('toggle-sidebar').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            sidebar.classList.toggle('sidebar-collapsed');
+            content.classList.toggle('content-expanded');
+            
+            const icon = this.querySelector('i');
+            const text = this.querySelector('.sidebar-text');
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+                if (text) text.textContent = 'Expand';
+            } else {
+                icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+                if (text) text.textContent = 'Collapse';
+            }
+        });
+
+        // Toggle mobile menu
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            document.getElementById('sidebar')?.classList.toggle('hidden');
+        });
+
+        // Toggle user menu
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+        userMenuButton?.addEventListener('click', function() {
+            userMenu?.classList.toggle('hidden');
+        });
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(event) {
+            if (userMenu && userMenuButton && !userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+        
+        // The old "Active menu item" JavaScript has been removed because Django now handles it.
+    </script>
+</body>
+</html>

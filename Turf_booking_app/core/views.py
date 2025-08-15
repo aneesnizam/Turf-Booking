@@ -989,3 +989,5 @@ def recent_bookings(request):
         return render(request, 'partials/_booking_list_partial.html', context)
    
     return render(request, 'owner/recent_bookings.html', context)
+
+

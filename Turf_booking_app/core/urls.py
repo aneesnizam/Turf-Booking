@@ -33,7 +33,8 @@ urlpatterns = [
     path('recent_bookings/',views.recent_bookings,name="recent_bookings"),
     path('owner_dashboard/delete_turf/<int:turf_id>/', views.delete_turf, name="delete_turf"),
     path('owner_dashboard/edit_turf/<int:turf_id>/', views.edit_turf, name="edit_turf"),
-      path('owner_dashboard/delete_image/<int:image_id>/', views.delete_image, name="delete_image"),
+    path('owner_dashboard/delete_image/<int:image_id>/', views.delete_image, name="delete_image"),
+    
     
 
 ]

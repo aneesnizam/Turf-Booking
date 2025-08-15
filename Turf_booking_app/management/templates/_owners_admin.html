@@ -1,0 +1,272 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Turf Owners Management</h1>
+        <div class="relative">
+            <input type="text" placeholder="Search owners..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Owners Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turfs</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Sarah Smith</div>
+                                    <div class="text-sm text-gray-500">sarah@example.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            +91 9876543210
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">3 Turfs</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="viewOwner(1)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                            <button onclick="warnOwner(1)" class="text-yellow-600 hover:text-yellow-900 mr-3">Warn</button>
+                            <button onclick="blockOwner(1)" class="text-red-600 hover:text-red-900">Block</button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Raj Kumar</div>
+                                    <div class="text-sm text-gray-500">raj@example.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            +91 8765432109
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">1 Turf</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="viewOwner(2)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                            <button onclick="warnOwner(2)" class="text-yellow-600 hover:text-yellow-900 mr-3">Warn</button>
+                            <button onclick="blockOwner(2)" class="text-red-600 hover:text-red-900">Block</button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Priya Nair</div>
+                                    <div class="text-sm text-gray-500">priya@example.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            +91 7654321098
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">2 Turfs</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Blocked</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="viewOwner(3)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                            <button onclick="unblockOwner(3)" class="text-green-600 hover:text-green-900">Unblock</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">12</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 1 </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 2 </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 3 </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewOwner(ownerId) {
+        // AJAX call or redirect to owner detail page
+        Swal.fire({
+            title: 'Owner Details',
+            html: `Loading owner details for ID: ${ownerId}...`,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+                // Simulate loading
+                setTimeout(() => {
+                    Swal.fire({
+                        title: 'Owner Details',
+                        html: `
+                            <div class="text-left">
+                                <div class="flex items-center mb-4">
+                                    <img src="https://via.placeholder.com/80" class="rounded-full w-16 h-16 mr-4">
+                                    <div>
+                                        <h3 class="font-bold">Owner ${ownerId}</h3>
+                                        <p>owner${ownerId}@example.com</p>
+                                        <p>+91 9876543210</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p class="text-gray-500">Status</p>
+                                        <p>Active</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Turfs</p>
+                                        <p>3 Turfs</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Joined</p>
+                                        <p>15 Jan 2023</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Last Active</p>
+                                        <p>2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Location</p>
+                                    <p>Kochi, Kerala</p>
+                                </div>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Edit Profile',
+                        cancelButtonText: 'Close'
+                    });
+                }, 1000);
+            }
+        });
+    }
+
+    function warnOwner(ownerId) {
+        Swal.fire({
+            title: 'Send Warning to Owner',
+            text: "Compose a warning message to this turf owner.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#F59E0B',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Send Warning',
+            input: 'textarea',
+            inputPlaceholder: 'Your warning message...',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Please write a warning message!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // AJAX call to send warning
+                Swal.fire(
+                    'Sent!',
+                    'The warning has been sent to the owner.',
+                    'success'
+                );
+            }
+        });
+    }
+
+    function blockOwner(ownerId) {
+        Swal.fire({
+            title: 'Block Owner?',
+            text: "This owner will no longer be able to access their turfs or manage bookings.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, block owner!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // AJAX call to block owner
+                Swal.fire(
+                    'Blocked!',
+                    'The owner has been blocked.',
+                    'success'
+                ).then(() => {
+                    // Reload or update UI
+                    location.reload();
+                });
+            }
+        });
+    }
+
+    function unblockOwner(ownerId) {
+        Swal.fire({
+            title: 'Unblock Owner?',
+            text: "This owner will regain access to manage their turfs.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, unblock owner!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // AJAX call to unblock owner
+                Swal.fire(
+                    'Unblocked!',
+                    'The owner has been unblocked.',
+                    'success'
+                ).then(() => {
+                    // Reload or update UI
+                    location.reload();
+                });
+            }
+        });
+    }
+</script>
+{% endblock %}
