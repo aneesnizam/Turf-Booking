@@ -63,10 +63,16 @@
                 {% block nav %}{% endblock %}
                 </div>
                 <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                 
-                    <a href="{% url 'turfs' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
+                {% if request.resolver_match.url_name == 'owner_dashboard' or request.resolver_match.url_name == 'edit_turf' or request.resolver_match.url_name == 'recent_bookings' or request.resolver_match.url_name == 'turf_register' %}
+<a href="{% url 'home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
+                        Home
+                    </a>
+                 {% else %}
+<a href="{% url 'turfs' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
                         Book Now
                     </a>
+                 {% endif %}
+                    
                       {% if request.user.role == 'owner' %}
             <a 
               href="{% url 'dashboard_redirect' %}"

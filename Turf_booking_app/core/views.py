@@ -864,15 +864,6 @@ def owner_dashboard(request):
     return render(request, 'owner/owner_dashboard.html', context)
 
 
-
-# -------------------- Owner Turfs Recent Bookings --------------------
-@login_required
-@user_passes_test(lambda u:u.role == 'owner')
-def recent_bookings(request):
-    return render(request,'owner/recent_bookings.html')
-
-
-
 # -------------------- EDIT TURF --------------------
 @user_passes_test(lambda u:u.role == 'owner')
 @login_required
@@ -952,3 +943,49 @@ def delete_image(request,image_id):
     image.delete()
     return redirect('edit_turf',turf_id)
     
+    
+    
+# -------------------- Owner Turfs Recent Bookings --------------------
+@login_required
+@user_passes_test(lambda u: u.role == 'owner')
+def recent_bookings(request):
+    all_bookings = Booking.objects.filter(turf__owner=request.user)
+    turfs = Turf.objects.filter(owner=request.user)
+
+    # 2. Read the filter data from the URL query parameters
+    turf_id = request.GET.get('turf')
+    status = request.GET.get('status')
+    booking_date = request.GET.get('booking_date')
+    min_amount = request.GET.get('min_amount')
+
+    # 3. Conditionally apply filters to the queryset if values are provided
+    if turf_id:
+        all_bookings = all_bookings.filter(turf__id=turf_id)
+    
+    if status:
+        all_bookings = all_bookings.filter(status=status)
+        
+    if booking_date:
+        all_bookings = all_bookings.filter(booking_date__gte=booking_date)
+        
+    if min_amount:
+        all_bookings = all_bookings.filter(total_cost__gte=min_amount)
+
+    # 4. Order the results and then apply pagination to the filtered list
+    all_bookings = all_bookings.order_by('-booking_date', '-start_time')
+    paginator = Paginator(all_bookings, 10)
+    page_number = request.GET.get('pagination_page')
+    paginator_review = paginator.get_page(page_number)
+    
+    # 5. Build a single context dictionary for both AJAX and regular requests
+    context = {
+        'paginator_review': paginator_review,
+        'turfs': turfs,
+        'bookings_count': all_bookings.count(), 
+    }
+    
+    # ---  Handle AJAX requests ---
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'partials/_booking_list_partial.html', context)
+   
+    return render(request, 'owner/recent_bookings.html', context)
