@@ -127,11 +127,22 @@
                   <p class="text-gray-400">No image available</p>
                 </div>
                 {% endif %}
+                {% if turf_detail.verification_status == "verified" and not turf_detail.is_suspended %}
                 <div
                   class="status-badge px-3 py-1 rounded-full text-sm font-medium {% if turf_detail.status == 'active' %}bg-green-100 text-green-800 {% elif turf_detail.status == 'maintenance' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
                 >
-                  {{ turf_detail.get_status_display }}
+                  {{ turf_detail.status }}
                 </div>
+                {% elif turf_detail.verification_status == "verified" and turf_detail.is_suspended %}
+              <div class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+  Suspended
+</div>
+
+                {% else %}
+                 <div class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  Un verified
+                </div>
+                {% endif %}
                 <div
                   class="rating-badge px-3 py-1 rounded-full bg-white text-yellow-600 shadow-sm flex items-center"
                 >
@@ -298,7 +309,8 @@
                     method="post"
                     action="{% url 'toggle_favourite' turf_detail.id %}"
                   >
-                    {% csrf_token %} {% if turf_detail in request.user.favourites.all %}
+                    {% csrf_token %} {% if request.user.is_authenticated and turf_detail in request.user.favourites.all %}
+
                     <button
                       id="favoriteBtn"
                       type="submit"
@@ -468,14 +480,32 @@
                       >₹0</span
                     >
                   </div>
-                  <button
-                    id="bookNowBtn"
-                    type="submit"
-                    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled
-                  >
-                    Book Now
-                  </button>
+           {% if turf_detail.verification_status == "verified" and not turf_detail.is_suspended %}
+  <button
+    id="bookNowBtn"
+    type="submit"
+    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg"
+  >
+    Book Now
+  </button>
+{% elif turf_detail.is_suspended %}
+  <button
+    type="button"
+    class="w-full bg-red-300 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md cursor-not-allowed"
+    disabled
+  >
+    Booking Suspended
+  </button>
+{% else %}
+  <button
+    type="button"
+    class="w-full bg-orange-200 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md cursor-not-allowed"
+    disabled
+  >
+    Not Yet Verified
+  </button>
+{% endif %}
+
                 </form>
               </div>
             </div>
@@ -700,6 +730,7 @@
             >
               Cancel
             </button>
+            
             <button
               id="confirm-booking-btn"
               type="button"
@@ -858,8 +889,10 @@ const deleteReview = () =>{
               const duration = parseInt(durationSelect.value) || 0;
               const totalCost = duration * costPerHour;
               totalPriceDisplay.textContent = `₹${totalCost.toLocaleString()}`;
-              // Enable the 'Book Now' button only if a valid price is calculated
-              bookNowBtn.disabled = totalCost <= 0;
+              if (bookNowBtn) {
+    bookNowBtn.disabled = totalCost <= 0 || bookNowBtn.hasAttribute("disabled");
+}
+
           }
 
           // Helper function to reset the form fields that depend on the date
@@ -981,6 +1014,7 @@ const deleteReview = () =>{
               }, 300); // Must match the duration in Tailwind classes
           }
 
+          if (bookNowBtn) {
           // Event: When the user clicks the main "Book Now" button
           bookNowBtn.addEventListener('click', function(event) {
               // Prevent the form from submitting immediately
@@ -1004,7 +1038,7 @@ const deleteReview = () =>{
               // Show the confirmation modal
               showModal();
           });
-
+        }
           // Event: When the final "Confirm & Pay" button is clicked, submit the form
           confirmBtn.addEventListener('click', function() {
               bookingForm.submit();

@@ -5,11 +5,11 @@ from django.db.models import Count, Sum
 from django.db.models.functions import TruncDay
 from django.utils import timezone
 from datetime import timedelta
-from accounts.models import Booking,User,Turf,Rating
+from accounts.models import Booking,User,Turf,Rating,Sport
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-
+from django.core.paginator import Paginator
 User = get_user_model()
 
 
@@ -107,20 +107,73 @@ def users_admin(request):
     elif joined_filter == 'month':
         start_of_month = today - timedelta(days=30)
         users = users.filter(joined__date__gte=start_of_month)
+    
+    paginator = Paginator(users,10)
+    page_number = request.GET.get('page')
+    datas = paginator.get_page(page_number)
 
     context = {
-        'users': users
+        'users': datas
     }
     
     return render(request, '_users_admin.html', context)
 
-
-
-
 @user_passes_test(lambda u: u.is_staff)
 @login_required
 def turfs_admin(request):
-    return render(request,'_turfs_admin.html')
+    # Start with an optimized base query
+    turfs = Turf.objects.select_related('owner').prefetch_related('sports')
+
+    # --- Search ---
+    q = request.GET.get("q")
+    if q:
+        turfs = turfs.filter(turf_name__icontains=q)
+
+    # --- Filters (Logic is unchanged) ---
+    status = request.GET.get("status")
+    if status:
+        turfs = turfs.filter(status=status)
+
+    verification = request.GET.get("verification")
+    if verification:
+        if verification != 'suspended':
+            turfs = turfs.filter(verification_status=verification, is_suspended=False)
+        else:
+            turfs = turfs.filter(is_suspended=True)
+
+    district = request.GET.get("district", '')
+    if district:
+        turfs = turfs.filter(district=district)
+      
+
+    sport = request.GET.get("sport")
+    if sport:
+        turfs = turfs.filter(sports__name__iexact=sport)
+
+    # Remove duplicates and order the results for consistent pagination
+    turfs = turfs.distinct().order_by('-created_at')
+    
+    # These queries are for the form dropdowns and are fine as they are
+    all_sports = Sport.objects.all()
+    all_districts = Turf.objects.values_list('district', flat=True).order_by('district').distinct()
+    
+    paginator = Paginator(turfs, 10)
+    page_number = request.GET.get('page')
+    paginated_turfs = paginator.get_page(page_number)
+
+    form_datas = {
+        'status': status,
+        'verification': verification,
+        'district': district,
+        'sport': sport,
+    }
+    context = {
+        "turfs": paginated_turfs,
+        'form_datas': form_datas,
+        'all_sports': all_sports,
+        'all_districts': all_districts,
+    }
+    return render(request, "_turfs_admin.html", context)
 
 
 
@@ -179,3 +232,27 @@ def reject_turf(request,turf_id):
     return redirect('admin_dashboard')
 
 
+@user_passes_test(lambda u: u.is_staff)
+@login_required
+def suspend_toggle(request, turf_id):
+    turf = get_object_or_404(Turf, id=turf_id)
+    turf.is_suspended = not turf.is_suspended
+    turf.save()
+    return redirect('turfs_admin')
+
+
+def verify_turf(request,turf_id):
+    turf = get_object_or_404(Turf,id=turf_id)
+    turf.verification_status = 'verified'
+    turf.save()
+    return redirect('turfs_admin')
+
+
+def Reject_turf(request,turf_id):
+    turf = get_object_or_404(Turf,id=turf_id)
+    if turf.verification_status == 'declined':
+        turf.verification_status = 'pending'
+    else:
+        turf.verification_status = 'declined'
+    turf.save()
+    return redirect('turfs_admin')

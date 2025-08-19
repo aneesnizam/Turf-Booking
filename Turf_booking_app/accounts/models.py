@@ -92,6 +92,7 @@ class Turf(models.Model):
     contact_number = models.CharField(max_length=15)
     cost_per_hour = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    is_suspended = models.BooleanField(default=False)
     verification_status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
         ('verified', 'Verified'),
