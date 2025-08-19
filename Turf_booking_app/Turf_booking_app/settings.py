@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.block_user_middleware.BlockUserMiddleware',
 ]
 
 ROOT_URLCONF = 'Turf_booking_app.urls'

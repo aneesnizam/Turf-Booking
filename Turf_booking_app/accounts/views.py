@@ -9,19 +9,25 @@ import requests
 def user_login(request):
     if request.user.is_authenticated:
         return redirect('home')
+
     if request.method == "POST":
-        email = request.POST['email']
-        password = request.POST['password']
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
         user = authenticate(request, email=email, password=password)
+
         if user:
-            login(request, user)
-            messages.success(request, "login successfull")
-            return redirect('home')
+            if getattr(user, 'is_blocked', False):  # check on user object
+                messages.error(request, "Your account has been blocked. Please contact support.")
+            else:
+                login(request, user)
+                messages.success(request, "Login successful!")
+                return redirect('home')
         else:
-            messages.error(request, "Invalid Credentials")
-            return render(request, 'user_login.html')
+            messages.error(request, "Invalid email or password.")
 
     return render(request, 'user_login.html')
+
 
 
 def admin_login(request):

@@ -882,6 +882,7 @@ def edit_turf(request, turf_id):
         if form.is_valid():
             try:
                 with transaction.atomic():
+                    turf.verification_status = "pending"
                     turf = form.save()
 
                     # Update sports

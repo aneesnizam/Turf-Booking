@@ -26,36 +26,11 @@
   <!-- Main Section -->
   <section class="min-h-screen w-full px-[50px] md:px-[100px] lg:px-[150px] pt-[15px] flex flex-col justify-center items-center bg-[#eefdf4] box-border">
 
-    <!-- Django Messages -->
-    {% if messages %}
-    <div class="w-full mt-2">
-      {% for message in messages %}
-      <div class="p-4 mb-4 rounded flex items-start
-        {% if message.tags == 'success' %}
-          bg-green-100 border-l-4 border-green-500 text-green-700
-        {% elif message.tags == 'info' %}
-          bg-blue-100 border-l-4 border-blue-500 text-blue-700
-        {% elif message.tags == 'warning' %}
-          bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700
-        {% elif message.tags == 'error' %}
-          bg-red-100 border-l-4 border-red-500 text-red-700
-        {% else %}
-          bg-gray-100 border-l-4 border-gray-500 text-gray-700
-        {% endif %}
-      ">
-        <span class="mr-2">
-          {% if message.tags == 'success' %}✅
-          {% elif message.tags == 'info' %}ℹ️
-          {% elif message.tags == 'warning' %}⚠️
-          {% elif message.tags == 'error' %}❌
-          {% else %}💡
-          {% endif %}
-        </span>
-        <span>{{ message }}</span>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+
+
+
+
+
 
     <!-- Optional Banner Section -->
     <div class="w-full bg-amber-100 rounded-3xl h-[200px] mb-[20px] md:mb-0">
@@ -64,6 +39,39 @@
 
     <!-- Form Section -->
     <div class="w-full md:w-[80%] lg:w-[50%] my-3">
+      
+      {% if messages %}
+<div id="message-container" class="w-full mt-2 space-y-2">
+  {% for message in messages %}
+  <div role="alert" class="p-4 rounded flex items-start justify-between
+    {% if message.tags == 'success' %}
+      bg-green-100 border-l-4 border-green-500 text-green-700
+    {% elif message.tags == 'info' %}
+      bg-blue-100 border-l-4 border-blue-500 text-blue-700
+    {% elif message.tags == 'warning' %}
+      bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700
+    {% elif message.tags == 'error' %}
+      bg-red-100 border-l-4 border-red-500 text-red-700
+    {% else %}
+      bg-gray-100 border-l-4 border-gray-500 text-gray-700
+    {% endif %}
+  ">
+    <span class="mr-2">
+      {% if message.tags == 'success' %}✅
+      {% elif message.tags == 'info' %}ℹ️
+      {% elif message.tags == 'warning' %}⚠️
+      {% elif message.tags == 'error' %}❌
+      {% else %}💡
+      {% endif %}
+    </span>
+    <span class="flex-1">{{ message }}</span>
+    <button class="close-button ml-4 text-lg font-bold">×</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+
       {% block form %}{% endblock %}
     </div>
   </section>
@@ -71,5 +79,30 @@
   <!-- Extra Content Block -->
   {% block content %}{% endblock %}
 
+
+  <script>
+  // --- Django Messages ---
+  function setupMessageDismissal() {
+    const messageContainer = document.getElementById('message-container');
+    if (!messageContainer) return;
+
+    const messages = messageContainer.querySelectorAll('[role="alert"]');
+    messages.forEach(messageDiv => {
+      const closeButton = messageDiv.querySelector('.close-button');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          messageDiv.classList.add('hidden');
+          setTimeout(() => messageDiv.remove(), 300);
+        });
+      }
+      // Auto-dismiss after 6s
+      setTimeout(() => {
+        messageDiv.classList.add('hidden');
+        setTimeout(() => messageDiv.remove(), 300);
+      }, 6000);
+    });
+  }
+  setupMessageDismissal();
+</script>
 </body>
 </html>
