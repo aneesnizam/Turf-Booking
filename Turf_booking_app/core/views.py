@@ -860,30 +860,37 @@ def owner_dashboard(request):
 
 
 # -------------------- EDIT TURF --------------------
-@user_passes_test(lambda u:u.role == 'owner')
+
+
+@user_passes_test(lambda u: u.role == 'owner')
 @login_required
 def edit_turf(request, turf_id):
     user = request.user
-    turf = get_object_or_404(Turf, id=turf_id, owner=user)
-
-    all_sports = Sport.objects.all()
-    existing_images_count = turf.images.count()
-    remaining_slots = max(0, 3 - existing_images_count)  # how many more images can be added
 
     if request.method == 'POST':
-        form = TurfProfileForm(request.POST, request.FILES, instance=turf)
-        new_images = request.FILES.getlist('images')[:remaining_slots]  # limit based on remaining slots
+        form = TurfProfileForm(request.POST, request.FILES)
 
         if form.is_valid():
             try:
                 with transaction.atomic():
+                    # Lock the turf row so no other request can change it simultaneously
+                    turf = Turf.objects.select_for_update().get(id=turf_id, owner=user)
+
                     turf.verification_status = "pending"
-                    turf = form.save()
+                    turf.name = form.cleaned_data['name']
+                    turf.location = form.cleaned_data['location']
+                    # ... update other fields from form as needed
+                    turf.save()
 
                     # Update sports
                     sport_ids = request.POST.getlist('sports')
                     sport_objects = Sport.objects.filter(id__in=sport_ids)
                     turf.sports.set(sport_objects)
+
+                    # Check again inside the locked transaction
+                    existing_images_count = turf.images.count()
+                    remaining_slots = max(0, 3 - existing_images_count)
+                    new_images = request.FILES.getlist('images')[:remaining_slots]
 
                     # Add new images if there's space
                     for image in new_images:
@@ -891,34 +898,27 @@ def edit_turf(request, turf_id):
 
                 messages.success(request, "Turf updated successfully.")
                 return redirect('edit_turf', turf_id=turf.id)
+
             except Exception as e:
                 messages.error(request, f"An error occurred: {e}")
-
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field.capitalize()}: {error}")
-
-        context = {
-            'form': form,
-            'all_sports': all_sports,
-            'turf': turf,
-            'remaining_slots': remaining_slots
-        }
-        return render(request, 'owner/edit_turf.html', context)
-
     else:
+        turf = get_object_or_404(Turf, id=turf_id, owner=user)
         form = TurfProfileForm(instance=turf)
-        context = {
-            'form': form,
-            'all_sports': all_sports,
-            'turf': turf,
-            'remaining_slots': remaining_slots
-        }
-        return render(request, 'owner/edit_turf.html', context)
 
-    
-    
+    all_sports = Sport.objects.all()
+    existing_images_count = turf.images.count()
+    remaining_slots = max(0, 3 - existing_images_count)
+
+    context = {
+        'form': form,
+        'all_sports': all_sports,
+        'turf': turf,
+        'remaining_slots': remaining_slots
+    }
+    return render(request, 'owner/edit_turf.html', context)
+
+
+
 # -------------------- Delete TURF --------------------
 @login_required
 @user_passes_test(lambda u:u.role == 'owner')
