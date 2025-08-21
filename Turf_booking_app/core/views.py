@@ -178,11 +178,9 @@ def turfs(request):
 # -------------------- UPDATE PROFILE --------------------
 @login_required
 def update_profile(request):
-    # --- 1. Setup ---
     user = request.user
 
     if request.method == 'POST':
-        # --- 2. Process Form Data ---
         new_fullname = request.POST.get('fullname', user.fullname).strip()
         new_phone = request.POST.get('phone', user.phone).strip()
         profile_picture_file = request.FILES.get('profile_picture')
@@ -190,23 +188,22 @@ def update_profile(request):
 
         try:
             with transaction.atomic():
-                # --- 3. Update Text Fields ---
+                # --- Update Text Fields ---
                 user.fullname = new_fullname
                 user.phone = new_phone
-                
-                # --- 4. Handle Profile Picture Update ---
+
+                # --- Handle Profile Picture Update (Cloudinary-safe) ---
                 if (profile_picture_file or clear_profile_picture) and user.profile_picture:
-                    if default_storage.exists(user.profile_picture.path):
-                        default_storage.delete(user.profile_picture.path)
+                    # Works for both Cloudinary and FileSystem
+                    user.profile_picture.delete(save=False)
 
                 if profile_picture_file:
                     user.profile_picture = profile_picture_file
                 elif clear_profile_picture:
                     user.profile_picture = None
 
-                # --- 5. Save Changes to Database ---
-                fields_to_update = ['fullname', 'phone', 'profile_picture']
-                user.save(update_fields=fields_to_update)
+                # --- Save Changes ---
+                user.save(update_fields=['fullname', 'phone', 'profile_picture'])
 
                 messages.success(request, 'Profile updated successfully!')
                 return redirect('profile')
@@ -215,9 +212,7 @@ def update_profile(request):
             messages.error(request, f'Failed to update profile due to an unexpected error: {e}.')
             return redirect('profile')
 
-    # --- 6. Handle GET Request ---
     return render(request, 'profile.html')
-
 
 
 # -------------------- UPDATE PASSWORD --------------------

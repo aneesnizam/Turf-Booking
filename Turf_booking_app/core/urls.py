@@ -2,8 +2,7 @@ from . import views
 from accounts import views as view1
 from django.contrib import admin
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('', view1.landing_page, name="landing"),
@@ -39,6 +38,4 @@ urlpatterns = [
 
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+

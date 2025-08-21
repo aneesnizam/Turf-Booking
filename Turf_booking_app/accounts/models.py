@@ -4,6 +4,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from decimal import Decimal
 import uuid
+from django.core.exceptions import ValidationError
 
 
 class Manager(BaseUserManager):
@@ -50,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = Manager()
     joined = models.DateField(auto_now_add=True)
     profile_picture = models.ImageField(
-        upload_to='profile_pics/', blank=True, null=True)
+        upload_to='profile_pics/', blank=True, null=True,max_length=500)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['phone']
@@ -117,11 +118,15 @@ class Turf(models.Model):
 
 class TurfImage(models.Model):
     turf = models.ForeignKey(Turf, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='turf_images/')
+    image = models.ImageField(upload_to='turf_images/', max_length=500)
 
-    def __str__(self):
-        return f"Image for {self.turf.turf_name}"
+    def clean(self):
+        if self.turf.images.exclude(id=self.id).count() >= 3:
+            raise ValidationError("A turf can only have up to 3 images.")
 
+    def save(self, *args, **kwargs):
+        self.clean()  # ensure validation always runs
+        super().save(*args, **kwargs)
 
 
 
