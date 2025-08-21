@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required , user_passes_test
-from django.db import transaction
+from django.db import transaction,IntegrityError
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
 from accounts.models import Turf, TurfImage, Sport,Booking,Rating
@@ -53,7 +53,7 @@ def delete_review(request,review_id):
 # -------------------- HOME --------------------
 @login_required
 def home(request):
-    all_turfs = Turf.objects.all().filter(status = 'active', verification_status='verified')
+    all_turfs = Turf.objects.all().filter(status = 'active', verification_status='verified',is_suspended = False,)
     top_rated_turfs = all_turfs.annotate(average_ratings = Coalesce(Avg('ratings__score'),0.0)).order_by('-average_ratings')[:3]
     context = {
         'all_turfs':top_rated_turfs,
@@ -85,7 +85,8 @@ def turfs(request):
     # --- 1. Initial Setup & User Location ---
     base_turfs_qs = Turf.objects.filter(
         status='active', 
-        verification_status='verified'
+        verification_status='verified',
+        is_suspended = False,
     ).prefetch_related('images', 'sports').annotate(
         avg_score=Coalesce(Avg('ratings__score'), 0.0)
     )
@@ -862,60 +863,76 @@ def owner_dashboard(request):
 # -------------------- EDIT TURF --------------------
 
 
-@user_passes_test(lambda u: u.role == 'owner')
+@user_passes_test(lambda u:u.role == 'owner')
 @login_required
 def edit_turf(request, turf_id):
-    user = request.user
-
+    # We fetch the turf object initially for GET requests and to check ownership.
+    # The actual locking will happen inside the POST block.
+    turf_for_display = get_object_or_404(Turf, id=turf_id, owner=request.user)
+    
     if request.method == 'POST':
-        form = TurfProfileForm(request.POST, request.FILES)
+        try:
+            with transaction.atomic():
+               
+                turf = Turf.objects.select_for_update().get(id=turf_id, owner=request.user)
 
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    # Lock the turf row so no other request can change it simultaneously
-                    turf = Turf.objects.select_for_update().get(id=turf_id, owner=user)
+                form = TurfProfileForm(request.POST, request.FILES, instance=turf)
+                
+                # Now, we calculate remaining slots safely inside the locked transaction.
+                existing_images_count = turf.images.count()
+                remaining_slots = max(0, 3 - existing_images_count)
+                new_images = request.FILES.getlist('images')[:remaining_slots]
 
+                if form.is_valid():
+                    # Set status before saving the form
                     turf.verification_status = "pending"
-                    turf.name = form.cleaned_data['name']
-                    turf.location = form.cleaned_data['location']
-                    # ... update other fields from form as needed
-                    turf.save()
+                    updated_turf = form.save()
 
                     # Update sports
                     sport_ids = request.POST.getlist('sports')
                     sport_objects = Sport.objects.filter(id__in=sport_ids)
-                    turf.sports.set(sport_objects)
-
-                    # Check again inside the locked transaction
-                    existing_images_count = turf.images.count()
-                    remaining_slots = max(0, 3 - existing_images_count)
-                    new_images = request.FILES.getlist('images')[:remaining_slots]
+                    updated_turf.sports.set(sport_objects)
 
                     # Add new images if there's space
                     for image in new_images:
-                        TurfImage.objects.create(turf=turf, image=image)
+                        TurfImage.objects.create(turf=updated_turf, image=image)
+                    
+                    messages.success(request, "Turf updated successfully and is pending review.")
+                    return redirect('edit_turf', turf_id=updated_turf.id)
+                
+                else:
+                    # If form is not valid, we don't want to save anything.
+                    # The transaction will automatically roll back on exiting the 'with' block.
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{field.capitalize()}: {error}")
+                    # Re-render the page with the invalid form
+                    context = {
+                        'form': form,
+                        'all_sports': Sport.objects.all(),
+                        'turf': turf, # use the locked turf object for context
+                        'remaining_slots': remaining_slots
+                    }
+                    return render(request, 'owner/edit_turf.html', context)
+                # --- CRITICAL SECTION END ---
 
-                messages.success(request, "Turf updated successfully.")
-                return redirect('edit_turf', turf_id=turf.id)
+        except IntegrityError as e:
+            messages.error(request, f"A database error occurred: {e}")
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {e}")
 
-            except Exception as e:
-                messages.error(request, f"An error occurred: {e}")
-    else:
-        turf = get_object_or_404(Turf, id=turf_id, owner=user)
-        form = TurfProfileForm(instance=turf)
+        # Redirect back to the edit page on error, to show messages
+        return redirect('edit_turf', turf_id=turf_id)
 
-    all_sports = Sport.objects.all()
-    existing_images_count = turf.images.count()
-    remaining_slots = max(0, 3 - existing_images_count)
-
-    context = {
-        'form': form,
-        'all_sports': all_sports,
-        'turf': turf,
-        'remaining_slots': remaining_slots
-    }
-    return render(request, 'owner/edit_turf.html', context)
+    else: # GET request
+        form = TurfProfileForm(instance=turf_for_display)
+        context = {
+            'form': form,
+            'all_sports': Sport.objects.all(),
+            'turf': turf_for_display,
+            'remaining_slots': max(0, 3 - turf_for_display.images.count())
+        }
+        return render(request, 'owner/edit_turf.html', context)
 
 
 

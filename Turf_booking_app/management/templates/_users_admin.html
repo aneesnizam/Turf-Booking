@@ -67,9 +67,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white divide-y divide-gray-200 ">
                 {% for user in users %}
-                <tr>
+                <tr class="hover:bg-gray-50 {% if user.is_blocked %}bg-red-50 hover:bg-red-50{% endif %}">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-10 w-10">
@@ -85,9 +85,21 @@
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{{user.role}}</span>
-                    </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+    {% if user.role == 'owner' %}
+        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+            {{ user.get_role_display }}
+        </span>
+    {% elif user.role == 'user' %}
+        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+            {{ user.get_role_display }}
+        </span>
+    {% else %}
+        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+            {{ user.get_role_display }}
+        </span>
+    {% endif %}
+</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{user.joined|date:"d M Y"}}
                     </td>

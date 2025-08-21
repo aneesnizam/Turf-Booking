@@ -153,7 +153,20 @@ class Booking(models.Model):
     verify_token = models.CharField(max_length=36, default=generate_token, unique=True)
 
 
-    
+    @property
+    def relative_date(self):
+        if not self.booking_date:
+            return ""
+        today = date.today()
+        if self.booking_date == today:
+            return "Today"
+        elif self.booking_date == today - timedelta(days=1):
+            return "Yesterday"
+        elif self.booking_date == today + timedelta(days=1):
+            return "Tomorrow"
+        else:
+            return ""
+        
 
         
     

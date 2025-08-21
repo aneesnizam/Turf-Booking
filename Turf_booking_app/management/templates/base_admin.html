@@ -117,9 +117,27 @@
                                 <span class="hidden md:inline">Admin</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </div>
-                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
-                            </div>
+                     <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+  <div class="py-1">
+    <a href="{% url 'profile' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+      <i class="fas fa-user-circle fa-fw mr-3 text-gray-400 group-hover:text-gray-500"></i>
+      Your Profile
+    </a>
+     <a href="{% url 'home' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+      <i class="fas fa-home fa-fw mr-3 text-gray-400 group-hover:text-gray-500"></i>
+      Home
+    </a>
+  </div>
+
+  <div class="border-t border-gray-100"></div>
+  
+  <div class="py-1">
+    <a href="{% url 'logout' %}" class="group flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+      <i class="fas fa-arrow-right-from-bracket fa-fw mr-3 text-red-400 group-hover:text-red-500"></i>
+      Sign out
+    </a>
+  </div>
+</div>
                         </div>
                     </div>
                 </div>

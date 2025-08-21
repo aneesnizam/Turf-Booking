@@ -100,13 +100,13 @@ def users_admin(request):
     joined_filter = request.GET.get('joined')
     today = timezone.now().date()
     if joined_filter == 'today':
-        users = users.filter(joined__date=today)
+        users = users.filter(joined=today)
     elif joined_filter == 'week':
         start_of_week = today - timedelta(days=7)
-        users = users.filter(joined__date__gte=start_of_week)
+        users = users.filter(joined__gte=start_of_week)
     elif joined_filter == 'month':
         start_of_month = today - timedelta(days=30)
-        users = users.filter(joined__date__gte=start_of_month)
+        users = users.filter(joined__gte=start_of_month)
     
     paginator = Paginator(users,10)
     page_number = request.GET.get('page')
@@ -117,6 +117,8 @@ def users_admin(request):
     }
     
     return render(request, '_users_admin.html', context)
+
+
 
 @user_passes_test(lambda u: u.is_staff)
 @login_required
@@ -177,28 +179,29 @@ def turfs_admin(request):
 
 
 
-@user_passes_test(lambda u: u.is_staff)
-@login_required
-def bookings_admin(request):
-    return render(request,'_bookings_admin.html')
-
-
-
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def block_user(request, user_id):
     if request.method == "POST":
         user = get_object_or_404(User, id=user_id)
-
-        # ✅ Only toggle is_blocked
+   
         user.is_blocked = not user.is_blocked
         user.save()
 
-        status = "unblocked" if not user.is_blocked else "blocked"
-        return JsonResponse({"success": True, "message": f"User {status} successfully."})
-    
-    return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
+        turfs = Turf.objects.filter(owner=user)
 
+        if user.is_blocked:
+            turfs.update(is_suspended=True)
+            
+        else:
+            turfs.update(is_suspended=False)
+
+        status = "blocked" if user.is_blocked else "unblocked"
+        message = f"User has been {status} successfully."
+        
+        return JsonResponse({"success": True, "message": message})
+    
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=400)
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -256,3 +259,64 @@ def Reject_turf(request,turf_id):
         turf.verification_status = 'declined'
     turf.save()
     return redirect('turfs_admin')
+
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def bookings_admin(request):
+
+    bookings_list = Booking.objects.select_related('user', 'turf')
+
+    # Get filter parameters from the URL
+    q = request.GET.get('q')
+    date_range = request.GET.get('date_range')
+    turfname = request.GET.get('turf_name')
+    user_email = request.GET.get('user_email')
+    
+    # --- Apply Filters ---
+    if q:
+        bookings_list = bookings_list.filter(
+            Q(user__fullname__icontains=q) |
+            Q(user__email__icontains=q) |
+            Q(turf__turf_name__icontains=q) |
+            Q(id__icontains=q) |
+            Q(turf__place__icontains=q) |
+            Q(turf__district__icontains=q)
+        )
+    
+    if turfname:
+        bookings_list = bookings_list.filter(turf__turf_name=turfname)
+        
+    if user_email:
+        bookings_list = bookings_list.filter(user__email=user_email)
+    
+    if date_range:
+        today = timezone.now().date()
+        if date_range == "today":
+            bookings_list = bookings_list.filter(created_at=today)
+        elif date_range == "week":
+            start_of_week = today - timedelta(days=today.weekday())
+            bookings_list = bookings_list.filter(created_at__gte=start_of_week)
+        elif date_range == "month":
+            start_of_month = today.replace(day=1)
+            bookings_list = bookings_list.filter(created_at__gte=start_of_month)
+            
+   
+    ordered_bookings = bookings_list.order_by('-created_at')
+    
+    # --- Add Pagination ---
+    paginator = Paginator(ordered_bookings, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+
+    users_email_options = Booking.objects.values_list('user__email', flat=True).distinct()
+    turf_names_options = Booking.objects.values_list('turf__turf_name', flat=True).distinct()
+    
+    context = {
+        'bookings': page_obj, 
+        'users_email': users_email_options,
+        'turf_names': turf_names_options,
+    }
+    return render(request, '_bookings_admin.html', context)

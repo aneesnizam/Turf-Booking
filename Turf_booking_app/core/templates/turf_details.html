@@ -97,11 +97,12 @@
 
   <body class="bg-gray-50">
     <div class="container mx-auto px-4 py-8 max-w-7xl">
+
       <a
-        href="/turfs"
+        href="javascript:history.back()"
         class="inline-flex items-center text-green-600 hover:text-green-800 mb-6 transition-colors"
       >
-        <i class="fas fa-arrow-left mr-2"></i> Back to Turfs
+        <i class="fas fa-arrow-left mr-2"></i> Back
       </a>
 
       <div class="bg-white rounded-xl shadow-xl overflow-hidden">
@@ -480,14 +481,16 @@
                       >₹0</span
                     >
                   </div>
-           {% if turf_detail.verification_status == "verified" and not turf_detail.is_suspended %}
+{% if turf_detail.verification_status == "verified" and not turf_detail.is_suspended %}
   <button
     id="bookNowBtn"
     type="submit"
-    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg"
+    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg disabled:bg-green-300 disabled:cursor-not-allowed"
+    disabled
   >
     Book Now
   </button>
+
 {% elif turf_detail.is_suspended %}
   <button
     type="button"
@@ -762,299 +765,300 @@
 
 
 <script>
-let SelectedReview = null;
-const openDeleteModal = (id) => {
-SelectedReview = id;
- my_modal_5.showModal();
-}
-const deleteReview = () =>{
-  if (!SelectedReview) return
-  fetch(`{% url 'delete_review' 0 %}`.replace("0", SelectedReview),{ 
-    method:'POST',
-    headers:{
-      'X-CSRFToken': '{{ csrf_token }}',
-      'Content-Type': 'application/json',
-    },
+  // --- START: REVIEW DELETION LOGIC ---
 
-   }
-  )
-  .then(response => {
-      if (response.ok) {
-        window.location.reload();
-      
-    } else {
-      alert('Error deleting review');
+  let selectedReviewId = null; 
+
+  const openDeleteModal = (id) => {
+    selectedReviewId = id;
+    // Assuming my_modal_5 is a global reference to your modal element
+    if (window.my_modal_5) {
+      window.my_modal_5.showModal();
     }
-  })
-}
-
-</script>
-    <script>
-      // This function runs once the entire HTML document has been loaded.
-      document.addEventListener('DOMContentLoaded', function () {
-
-          // --- START: PAGE-LEVEL FUNCTIONS ---
-
-          // Tab switching functionality
-          window.switchTab = function(tabId) {
-              // Hide all tab content sections
-              document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
-              // Deactivate all tab buttons
-              document.querySelectorAll(".tab-button").forEach(btn => {
-                  btn.classList.remove("active", "border-green-500", "text-green-600");
-                  btn.classList.add("border-transparent", "text-gray-500");
-              });
-
-              // Show the selected tab's content
-              document.getElementById(tabId).classList.add("active");
-              // Activate the selected tab button
-              const currentButton = document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`);
-              currentButton.classList.add("active", "border-green-500", "text-green-600");
-              currentButton.classList.remove("border-transparent", "text-gray-500");
-          };
-
-          // Image gallery: click a thumbnail to swap it with the main image
-          window.changeImage = function(event) {
-              const mainImage = document.getElementById("mainImage");
-              const thumbnailImg = event.currentTarget.querySelector('img');
-
-              // Temporarily store the source of the main image
-              const mainImageSrc = mainImage.src;
-
-              // Swap sources
-              mainImage.src = thumbnailImg.src;
-              thumbnailImg.src = mainImageSrc;
-
-              // Add a fade effect for a smooth transition
-              mainImage.style.opacity = 0;
-              setTimeout(() => { mainImage.style.opacity = 1; }, 100);
-          };
-
-          // Share Button functionality
-          const shareBtn = document.getElementById("shareBtn");
-          if (shareBtn) {
-              shareBtn.addEventListener("click", function () {
-                  // Use the modern Web Share API if available
-                  if (navigator.share) {
-                      navigator.share({
-                          title: `Check out {{ turf_detail.turf_name|escapejs }}`,
-                          text: "Book this amazing turf for your next game!",
-                          url: window.location.href,
-                      }).catch(err => console.error("Error sharing:", err));
-                  } else {
-                      // Fallback for older browsers (e.g., open WhatsApp)
-                      alert("Sharing is not supported on this browser. You can copy the URL manually.");
-                  }
-              });
-          }
-
-          // --- END: PAGE-LEVEL FUNCTIONS ---
+  };
 
 
-          // --- START: BOOKING FORM LOGIC ---
+  const deleteReview = () => {
+    if (!selectedReviewId) return;
 
-          // Get all necessary elements from the document
-          const bookingForm = document.getElementById('booking-form');
-          const dateInput = document.getElementById('bookingDate');
-          const startTimeSelect = document.getElementById('startTime');
-          const durationSelect = document.getElementById('duration');
-          const totalPriceDisplay = document.getElementById('totalPrice');
-          const bookNowBtn = document.getElementById('bookNowBtn');
-          const availabilityMessage = document.getElementById('availability-message');
+    const url = `{% url 'delete_review' 0 %}`.replace("0", selectedReviewId);
 
-          // Get turf-specific data passed from the Django view
-          const turfId = {{ turf_detail.id }};
-          const costPerHour = {{ turf_detail.cost_per_hour }};
-          const openingTime = "{{ turf_detail.opening_time|time:'H:i' }}";
-          const closingTime = "{{ turf_detail.closing_time|time:'H:i' }}";
-
-          // Set the minimum selectable date to today
-          const today = new Date()
-          const max_date = new Date();
-          max_date.setDate(today.getDate() + 20)
-          dateInput.min = today.toISOString().split('T')[0];;
-          dateInput.max = max_date.toISOString().split('T')[0]
-
-          // Helper function to format time from "HH:mm" to "h:mm AM/PM"
-          function formatTime(timeStr) {
-              const [hour, minute] = timeStr.split(':');
-              const h = parseInt(hour);
-              const ampm = h >= 12 ? 'PM' : 'AM';
-              const formattedHour = h % 12 || 12; // Converts "0" or "12" to "12"
-              return `${formattedHour}:${minute} ${ampm}`;
-          }
-
-          // Helper function to update the total price based on duration
-          function updatePrice() {
-              const duration = parseInt(durationSelect.value) || 0;
-              const totalCost = duration * costPerHour;
-              totalPriceDisplay.textContent = `₹${totalCost.toLocaleString()}`;
-              if (bookNowBtn) {
-    bookNowBtn.disabled = totalCost <= 0 || bookNowBtn.hasAttribute("disabled");
-}
-
-          }
-
-          // Helper function to reset the form fields that depend on the date
-          function resetDependentFields() {
-              startTimeSelect.innerHTML = '<option value="">Select a date first</option>';
-              startTimeSelect.disabled = true;
-              durationSelect.innerHTML = '<option value="">Select a start time first</option>';
-              durationSelect.disabled = true;
-              availabilityMessage.textContent = '';
-              updatePrice();
-          }
-
-          // Event: When the user selects a date
-          dateInput.addEventListener('change', async function () {
-              const selectedDate = this.value;
-              resetDependentFields();
-              if (!selectedDate) return;
-
-              startTimeSelect.innerHTML = '<option>Loading slots...</option>';
-
-              try {
-                  // Fetch available time slots for the selected date from the server
-                  const response = await fetch(`/ajax/check-availability/${turfId}/?date=${selectedDate}`);
-                  if (!response.ok) throw new Error('Network response was not ok.');
-
-                  const data = await response.json();
-
-                  startTimeSelect.innerHTML = ''; // Clear loading message
-                  if (data.available_slots && data.available_slots.length > 0) {
-                      startTimeSelect.disabled = false;
-                      startTimeSelect.innerHTML = '<option value="">Select a start time</option>';
-                      // Populate the start time dropdown with available slots
-                      data.available_slots.forEach(slot => {
-                          const option = document.createElement('option');
-                          option.value = slot;
-                          option.textContent = formatTime(slot);
-                          startTimeSelect.appendChild(option);
-                      });
-                  } else {
-                      // If no slots are available, show a message
-                      availabilityMessage.textContent = 'This turf is fully booked for the selected day.';
-                      startTimeSelect.innerHTML = '<option>No slots available</option>';
-                  }
-              } catch (error) {
-                  console.error('Error fetching slots:', error);
-                  availabilityMessage.textContent = 'Could not fetch availability. Please try again.';
-                  startTimeSelect.innerHTML = '<option>Error loading slots</option>';
-              }
-          });
-
-          // Event: When the user selects a start time
-          startTimeSelect.addEventListener('change', function () {
-              const selectedStartTime = this.value;
-              durationSelect.innerHTML = '<option value="">Select a duration</option>';
-              durationSelect.disabled = true;
-              updatePrice(); // Reset price
-              if (!selectedStartTime) return;
-
-              const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
-              const [openHour, ] = openingTime.split(':').map(Number);
-              const [closeHour, closeMinute] = closingTime.split(':').map(Number);
-
-              // Calculate the total available time from the selected start time
-              let closingTimeInMinutes = closeHour * 60 + closeMinute;
-              // Handle overnight schedules (e.g., closes at 2 AM)
-              if (closeHour < openHour && startHour >= openHour) {
-                  closingTimeInMinutes += 24 * 60; // Add 24 hours
-              }
-
-              const startTimeInMinutes = startHour * 60 + startMinute;
-              const remainingMinutes = closingTimeInMinutes - startTimeInMinutes;
-
-              // Populate the duration dropdown (up to 4 hours)
-              durationSelect.disabled = false;
-              for (let i = 1; i <= 4; i++) {
-                  if ((i * 60) <= remainingMinutes) {
-                      const option = document.createElement('option');
-                      option.value = i;
-                      option.textContent = `${i} hour${i > 1 ? 's' : ''}`;
-                      durationSelect.appendChild(option);
-                  }
-              }
-          });
-
-          // Event: When the user selects a duration, update the price
-          durationSelect.addEventListener('change', updatePrice);
-
-          // --- END: BOOKING FORM LOGIC ---
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => {
+      if (response.ok) {
+        // Success: Reload the page to show the updated review list
+        window.location.reload();
+      } else {
+        // Handle server errors (e.g., review not found, permission denied)
+        alert('Error: Could not delete the review.');
+      }
+    })
+    .catch(error => {
+      // OPTIMIZATION: Added .catch to handle network errors (e.g., no internet)
+      console.error('Network error while trying to delete review:', error);
+      alert('A network error occurred. Please try again.');
+    });
+  };
 
 
-          // --- START: CONFIRMATION MODAL LOGIC ---
+  // --- START: MAIN PAGE LOGIC (RUNS AFTER HTML IS LOADED) ---
 
-          // Get modal elements
-          const confirmationModal = document.getElementById('confirmation-modal');
-          const modalContent = document.getElementById('modal-content');
-          const bookingSummary = document.getElementById('booking-summary');
-          const confirmBtn = document.getElementById('confirm-booking-btn');
-          const modalCloseBtns = document.querySelectorAll('.js-modal-close');
+  document.addEventListener('DOMContentLoaded', function () {
 
-          // Function to show the modal with a smooth animation
-          function showModal() {
-              confirmationModal.classList.remove('hidden');
-              confirmationModal.classList.add('flex');
-              // A tiny delay allows the 'display' property to apply before the transition starts
-              setTimeout(() => {
-                  confirmationModal.classList.add('opacity-100');
-                  modalContent.classList.remove('opacity-0', 'scale-95');
-                  modalContent.classList.add('opacity-100', 'scale-100');
-              }, 10);
-          }
+    // --- Cache DOM elements for better performance ---
+    // Instead of searching for these elements every time, we find them once and store them.
+    const tabContents = document.querySelectorAll(".tab-content");
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const mainImage = document.getElementById("mainImage");
+    const shareBtn = document.getElementById("shareBtn");
+    const bookingForm = document.getElementById('booking-form');
+    const dateInput = document.getElementById('bookingDate');
+    const startTimeSelect = document.getElementById('startTime');
+    const durationSelect = document.getElementById('duration');
+    const totalPriceDisplay = document.getElementById('totalPrice');
+    const bookNowBtn = document.getElementById('bookNowBtn');
+    const availabilityMessage = document.getElementById('availability-message');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const modalContent = document.getElementById('modal-content');
+    const bookingSummary = document.getElementById('booking-summary');
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    const modalCloseBtns = document.querySelectorAll('.js-modal-close');
 
-          // Function to hide the modal
-          function hideModal() {
-              confirmationModal.classList.remove('opacity-100');
-              modalContent.classList.add('opacity-0', 'scale-95');
-              // Wait for the animation to finish before setting display to none
-              setTimeout(() => {
-                  confirmationModal.classList.add('hidden');
-              }, 300); // Must match the duration in Tailwind classes
-          }
+    // --- Turf data from Django ---
+    const turfId = {{ turf_detail.id }};
+    const costPerHour = {{ turf_detail.cost_per_hour }};
+    const openingTime = "{{ turf_detail.opening_time|time:'H:i' }}";
+    const closingTime = "{{ turf_detail.closing_time|time:'H:i' }}";
 
-          if (bookNowBtn) {
-          // Event: When the user clicks the main "Book Now" button
-          bookNowBtn.addEventListener('click', function(event) {
-              // Prevent the form from submitting immediately
-              event.preventDefault();
 
-              // Get the selected details to show in the summary
-              const dateValue = dateInput.value;
-              const startTimeValue = startTimeSelect.options[startTimeSelect.selectedIndex].text;
-              const durationValue = durationSelect.options[durationSelect.selectedIndex].text;
-              const priceValue = totalPriceDisplay.textContent;
+    // --- Page-Level Functions ---
 
-              // Populate the summary details inside the modal
-              bookingSummary.innerHTML = `
-                  <div class="flex justify-between"><strong class="text-gray-600">Turf:</strong> <span class="font-medium">{{ turf_detail.turf_name|escapejs }}</span></div>
-                  <div class="flex justify-between"><strong class="text-gray-600">Date:</strong> <span class="font-medium">${dateValue}</span></div>
-                  <div class="flex justify-between"><strong class="text-gray-600">Start Time:</strong> <span class="font-medium">${startTimeValue}</span></div>
-                  <div class="flex justify-between"><strong class="text-gray-600">Duration:</strong> <span class="font-medium">${durationValue}</span></div>
-                  <div class="flex justify-between border-t pt-3 mt-3"><strong class="text-gray-800 text-lg">Total Price:</strong> <span class="font-bold text-lg text-green-600">${priceValue}</span></div>
-              `;
-
-              // Show the confirmation modal
-              showModal();
-          });
-        }
-          // Event: When the final "Confirm & Pay" button is clicked, submit the form
-          confirmBtn.addEventListener('click', function() {
-              bookingForm.submit();
-          });
-
-          // Event: Add close functionality to all buttons with the 'js-modal-close' class
-          modalCloseBtns.forEach(btn => btn.addEventListener('click', hideModal));
-
-          // Event: Also close the modal if the user clicks on the dark background overlay
-          confirmationModal.addEventListener('click', function(event) {
-              if (event.target === confirmationModal) {
-                  hideModal();
-              }
-          });
-
+    /**
+     * Handles switching between tabs like Details, Gallery, etc.
+     * @param {string} tabId - The ID of the tab content to show.
+     */
+    window.switchTab = function(tabId) {
+      // OPTIMIZATION: Use the cached 'tabContents' list
+      tabContents.forEach(content => content.classList.remove("active"));
+      
+      // OPTIMIZATION: Use the cached 'tabButtons' list
+      tabButtons.forEach(btn => {
+        btn.classList.remove("active", "border-green-500", "text-green-600");
+        btn.classList.add("border-transparent", "text-gray-500");
       });
-    </script>
+
+      document.getElementById(tabId).classList.add("active");
+      const currentButton = document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`);
+      if (currentButton) {
+        currentButton.classList.add("active", "border-green-500", "text-green-600");
+        currentButton.classList.remove("border-transparent", "text-gray-500");
+      }
+    };
+
+    /**
+     * Swaps the main image with a clicked thumbnail image.
+     * @param {Event} event - The click event from the thumbnail.
+     */
+    window.changeImage = function(event) {
+      const thumbnailImg = event.currentTarget.querySelector('img');
+      if (!mainImage || !thumbnailImg) return;
+
+      const mainImageSrc = mainImage.src;
+      mainImage.src = thumbnailImg.src;
+      thumbnailImg.src = mainImageSrc;
+
+      mainImage.style.opacity = 0;
+      setTimeout(() => { mainImage.style.opacity = 1; }, 100);
+    };
+
+
+    // --- Booking Form Logic ---
+
+    // Set min/max dates for the date picker
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 20);
+    dateInput.min = today.toISOString().split('T')[0];
+    dateInput.max = maxDate.toISOString().split('T')[0];
+
+    /**
+     * Formats time from "HH:mm" to a readable "h:mm AM/PM" format.
+     * @param {string} timeStr - The time string (e.g., "14:30").
+     */
+    function formatTime(timeStr) {
+      const [hour, minute] = timeStr.split(':');
+      const h = parseInt(hour, 10);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const formattedHour = h % 12 || 12;
+      return `${formattedHour}:${minute} ${ampm}`;
+    }
+
+    /**
+     * Updates the total price display and enables/disables the 'Book Now' button.
+     */
+    function updatePrice() {
+      const duration = parseInt(durationSelect.value, 10) || 0;
+      const totalCost = duration * costPerHour;
+      totalPriceDisplay.textContent = `₹${totalCost.toLocaleString()}`;
+      
+      if (bookNowBtn) {
+        // BUG FIX: This logic correctly enables the button only when a valid
+        // duration is selected. The old logic was flawed.
+        bookNowBtn.disabled = (duration <= 0);
+      }
+    }
+
+    /**
+     * Resets the time, duration, and price fields.
+     */
+    function resetDependentFields() {
+      startTimeSelect.innerHTML = '<option value="">Select a date first</option>';
+      startTimeSelect.disabled = true;
+      durationSelect.innerHTML = '<option value="">Select a start time first</option>';
+      durationSelect.disabled = true;
+      availabilityMessage.textContent = '';
+      updatePrice();
+    }
+
+    // Event listener for date changes
+    dateInput.addEventListener('change', async function () {
+      const selectedDate = this.value;
+      resetDependentFields();
+      if (!selectedDate) return;
+
+      startTimeSelect.innerHTML = '<option>Loading slots...</option>';
+
+      try {
+        const response = await fetch(`/ajax/check-availability/${turfId}/?date=${selectedDate}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
+
+        const data = await response.json();
+        
+        startTimeSelect.innerHTML = ''; // Clear loading message
+        if (data.available_slots && data.available_slots.length > 0) {
+          startTimeSelect.disabled = false;
+          startTimeSelect.innerHTML = '<option value="">Select a start time</option>';
+          data.available_slots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot;
+            option.textContent = formatTime(slot);
+            startTimeSelect.appendChild(option);
+          });
+        } else {
+          availabilityMessage.textContent = 'This turf is fully booked for the selected day.';
+          startTimeSelect.innerHTML = '<option>No slots available</option>';
+        }
+      } catch (error) {
+        console.error('Error fetching slots:', error);
+        availabilityMessage.textContent = 'Could not fetch availability. Please try again.';
+        startTimeSelect.innerHTML = '<option>Error loading slots</option>';
+      }
+    });
+
+    // Event listener for start time changes
+    startTimeSelect.addEventListener('change', function () {
+      const selectedStartTime = this.value;
+      durationSelect.innerHTML = '<option value="">Select a duration</option>';
+      durationSelect.disabled = true;
+      updatePrice(); // Reset price
+      if (!selectedStartTime) return;
+
+      const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
+      const [openHour, ] = openingTime.split(':').map(Number);
+      const [closeHour, closeMinute] = closingTime.split(':').map(Number);
+
+      let closingTimeInMinutes = closeHour * 60 + closeMinute;
+      if (closeHour < openHour && startHour >= openHour) {
+        closingTimeInMinutes += 24 * 60; // Handle overnight closing times
+      }
+      
+      const startTimeInMinutes = startHour * 60 + startMinute;
+      const remainingMinutes = closingTimeInMinutes - startTimeInMinutes;
+
+      durationSelect.disabled = false;
+      for (let i = 1; i <= 4; i++) {
+        if ((i * 60) <= remainingMinutes) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = `${i} hour${i > 1 ? 's' : ''}`;
+          durationSelect.appendChild(option);
+        }
+      }
+    });
+
+    // Event listener for duration changes
+    durationSelect.addEventListener('change', updatePrice);
+
+
+    // --- Confirmation Modal Logic ---
+
+    function showModal() {
+      confirmationModal.classList.remove('hidden');
+      confirmationModal.classList.add('flex');
+      setTimeout(() => {
+        confirmationModal.classList.add('opacity-100');
+        modalContent.classList.remove('opacity-0', 'scale-95');
+      }, 10);
+    }
+
+    function hideModal() {
+      confirmationModal.classList.remove('opacity-100');
+      modalContent.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => {
+        confirmationModal.classList.add('hidden');
+      }, 300);
+    }
+
+    if (bookNowBtn) {
+      bookNowBtn.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent form from submitting immediately
+
+        const dateValue = dateInput.value;
+        const startTimeValue = startTimeSelect.options[startTimeSelect.selectedIndex].text;
+        const durationValue = durationSelect.options[durationSelect.selectedIndex].text;
+        const priceValue = totalPriceDisplay.textContent;
+
+        bookingSummary.innerHTML = `
+          <div class="flex justify-between"><strong class="text-gray-600">Turf:</strong> <span class="font-medium">{{ turf_detail.turf_name|escapejs }}</span></div>
+          <div class="flex justify-between pt-2"><strong class="text-gray-600">Date:</strong> <span class="font-medium">${dateValue}</span></div>
+          <div class="flex justify-between pt-2"><strong class="text-gray-600">Start Time:</strong> <span class="font-medium">${startTimeValue}</span></div>
+          <div class="flex justify-between pt-2"><strong class="text-gray-600">Duration:</strong> <span class="font-medium">${durationValue}</span></div>
+          <div class="flex justify-between border-t pt-3 mt-3"><strong class="text-gray-800 text-lg">Total Price:</strong> <span class="font-bold text-lg text-green-600">${priceValue}</span></div>
+        `;
+        showModal();
+      });
+    }
+
+    confirmBtn.addEventListener('click', () => bookingForm.submit());
+    modalCloseBtns.forEach(btn => btn.addEventListener('click', hideModal));
+    confirmationModal.addEventListener('click', (event) => {
+      if (event.target === confirmationModal) hideModal();
+    });
+
+
+    // --- Share Button Logic ---
+    
+    if (shareBtn) {
+      shareBtn.addEventListener("click", () => {
+        if (navigator.share) {
+          navigator.share({
+            title: `Check out {{ turf_detail.turf_name|escapejs }}`,
+            text: "Book this amazing turf for your next game!",
+            url: window.location.href,
+          }).catch(err => console.error("Error sharing:", err));
+        } else {
+          alert("Sharing is not supported on this browser. You can copy the URL manually.");
+        }
+      });
+    }
+
+  });
+</script>
   </body>
 </html>
