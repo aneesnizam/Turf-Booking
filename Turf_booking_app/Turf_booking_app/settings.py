@@ -22,11 +22,21 @@ LOCATIONIQ_API_KEY = config('LOCATIONIQ_API_KEY')
 DEBUG = config('DEBUG', default=False , cast=bool )
 
 
+# Start with an empty list for allowed hosts
+ALLOWED_HOSTS = []
+
+# Get the Render hostname from the environment variables
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+
+# If the hostname exists (i.e., we are on Render), add it to our list
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# If we are in development mode, add the local hosts
 if DEBUG:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-else:
-    hosts = config('ALLOWED_HOSTS', default='')
-    ALLOWED_HOSTS = [s.strip() for s in hosts.split(',') if s.strip()]
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
+    
+    
 
 MEDIA_URL = '/media/'
 
@@ -166,6 +176,9 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_IGNORE_PATTERNS = [
+    'css/input.css',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
