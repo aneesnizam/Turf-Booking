@@ -252,6 +252,11 @@ class Rating(models.Model):
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     admin_warning_note = models.TextField(blank=True, null=True)
+    reported_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, 
+        related_name='reported_reviews', 
+        blank=True
+    )
 
 
 

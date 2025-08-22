@@ -102,12 +102,13 @@ def autocomplete_place(request):
         for item in data:
             address = item.get('address', {})
             
-            city_name = address.get('town') or address.get('city', '')
-            state_district = address.get('state_district', '')
-            county = address.get('county', '')
-            final_district = state_district or county or ""
-           
             
+            city_name = (
+                address.get('city') or 
+                address.get('town') or 
+                address.get('county') or  # Added 'county' as a strong candidate
+                address.get('state_district', '')
+            )
             locality = address.get('suburb') or address.get('village') or address.get('city_district') or address.get('name', '')
             
             
@@ -115,7 +116,6 @@ def autocomplete_place(request):
                 'display_name': item.get('display_name'),
                 'place': locality,
                 'city': city_name,
-                'district': final_district,
                 'pincode': address.get('postcode', ''),
                 'latitude': item.get('lat'),  
                 'longitude': item.get('lon')

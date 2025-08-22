@@ -307,7 +307,7 @@ def bookings_admin(request):
     ordered_bookings = bookings_list.order_by('-created_at')
     
     # --- Add Pagination ---
-    paginator = Paginator(ordered_bookings, 5) 
+    paginator = Paginator(ordered_bookings, 20) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 

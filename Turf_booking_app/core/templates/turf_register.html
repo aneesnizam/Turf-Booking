@@ -89,11 +89,16 @@
           </div>
 
           <div class="relative mb-4" id="place-field">
+      
             <label for="location-search" class="mb-[3px] font-[600]"
               >Location</label
             >
+                 <div class="flex items-center mt-1.5 mb-1 text-xs text-gray-600">
+  <i class="fas fa-info-circle mr-2"></i>
+  <span>This field is used to locate nearby turfs.</span>
+</div>
             <div class="flex gap-2 items-start">
-              <!-- Changed from items-stretch to items-center -->
+              
               <input
                 type="text"
                 id="location-search"
@@ -116,7 +121,9 @@
               class="absolute bg-white border rounded shadow mt-1 w-full max-h-[200px] overflow-auto z-50 hidden"
             ></ul>
           </div>
+
           <div class="sm:col-span-2 hidden" id="auto-message">
+           
             <p
               class="text-sm text-yellow-800 bg-yellow-50 p-3 rounded-lg flex items-center gap-x-3"
             >
@@ -133,8 +140,7 @@
                 />
               </svg>
               <span
-                >The address is auto-filled. Please review all fields,
-                especially the <strong>District</strong>, to ensure they are
+                >The address is auto-filled. Please review all fields, to ensure they are
                 correct.</span
               >
             </p>
@@ -442,7 +448,6 @@
             automessage.classList.remove("hidden");
             document.getElementById("place").value = item.place || "";
             document.getElementById("city").value = item.city || "";
-            document.getElementById("district").value = item.district || "";
             document.getElementById("pincode").value = item.pincode || "";
 
             document.getElementById("latitude").value = item.latitude || "";

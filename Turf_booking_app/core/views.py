@@ -1014,23 +1014,33 @@ def recent_bookings(request):
     return render(request, 'owner/recent_bookings.html', context)
 
 
+
+
 def report_comment(request, rating_id):
     review = get_object_or_404(Rating, id=rating_id)
+
+    # 1. Check if user has already reported this review
+    if request.user.is_authenticated and request.user in review.reported_by.all():
+        messages.info(request, "You have already reported this review.")
+        return redirect("turf_details", turf_id=review.turf.id)
 
     if request.method == "POST":
         reason = request.POST.get("reason", "").strip()
         if reason:
+            # 2. Add the user to the list of reporters and save it
+            review.reported_by.add(request.user)
+            
             admins = User.objects.filter(is_staff=True)
 
             if admins.exists():
                 for admin_user in admins:
                     UserMessage.objects.create(
-                        user=admin_user,   # send to each admin
+                        user=admin_user,  # send to each admin
                         message_type="report",
                         message=(
                             f"🚨 <b>Review Reported</b><br>"
                             f"Comment ID: <b>{review.id}</b><br>"
-                            f"Reported by: <b>{request.user.email if request.user.is_authenticated else 'Anonymous'}</b><br>"
+                            f"Reported by: <b>{request.user.email}</b><br>"
                             f"Reason: <b>{reason}</b><br>"
                             f"Turf: <b>{review.turf.turf_name}</b>"
                         ),
