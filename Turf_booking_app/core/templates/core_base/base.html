@@ -5,13 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoTurfy - Book Premium Sports Turfs</title>
+
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
     <style>
+        /* A simple blob animation for visual effect */
         @keyframes blob {
             0% { transform: translate(0px, 0px) scale(1); }
             33% { transform: translate(30px, -50px) scale(1.1); }
@@ -28,34 +29,33 @@
             animation-delay: 4s;
         }
 
-        /* Styles for Messages Pop-up Effect */
+        /* Slide-down and fade-in animation for Django messages */
         @keyframes slideDownFadeIn {
             from {
-                transform: translateY(-100%);
                 opacity: 0;
+                transform: translateY(-100%);
             }
             to {
-                transform: translateY(0);
                 opacity: 1;
+                transform: translateY(0);
             }
         }
         .message-popup {
             animation: slideDownFadeIn 0.5s ease-out forwards;
         }
         
-        /* Mobile menu styles */
+        /* Mobile menu visibility styles */
         .mobile-menu {
             display: none;
             transition: all 0.3s ease;
         }
-        
         .mobile-menu.active {
             display: block;
         }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- Navigation -->
+    
     <nav class="bg-white shadow shadow-gray-400">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -64,32 +64,36 @@
                         <i class="fas fa-futbol text-green-500 text-2xl mr-2"></i>
                         <span class="text-xl font-bold text-gray-800">GoTurfy</span>
                     </div>
-                    {% block nav %}{% endblock %}
+                    
+                    {% block nav %}
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{% url 'home' %}" class="border-green-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+                        <a href="{% url 'turfs' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" >Turfs</a>
+                        <a href="{% url 'booking' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Bookings</a>
+                        <a href="{% url 'favorites' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Favourites</a>
+                    </div>
+                    {% endblock %}
                 </div>
                 
-                <!-- Desktop Navigation -->
-                <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                    {% if request.resolver_match.url_name == 'owner_dashboard' or request.resolver_match.url_name == 'edit_turf' or request.resolver_match.url_name == 'recent_bookings' or request.resolver_match.url_name == 'turf_register' %}
-                    <a href="{% url 'home' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
-                        Home
-                    </a>
-                    {% else %}
-                    <a href="{% url 'turfs' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 cursor-pointer">
-                        Book Now
-                    </a>
-                    {% endif %}
-                    
-                    {% if request.user.role == 'owner' %}
-                    <a href="{% url 'dashboard_redirect' %}" class="ml-4 text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
-                        Owner Dashboard
-                    </a>
-                    {% elif request.user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="ml-4 text-red-600 border border-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
-                        Admin Dashboard
-                    </a>
-                    {% endif %}
-                    
-                    <!-- Notifications -->
+                <div class="flex items-center gap-2">
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                        {% if request.user.role == 'owner' %}
+                            <a href="{% url 'dashboard_redirect' %}" class="ml-4 text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">Owner Dashboard</a>
+                        {% elif request.user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="ml-4 text-red-600 border border-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">Admin Dashboard</a>
+                        {% endif %}
+                        
+                        <div class="ml-4 relative flex-shrink-0">
+                            <a href="{% url 'profile' %}" class="bg-white rounded-full flex text-sm hover:outline-none hover:ring-2 hover:ring-offset-2 hover:ring-green-500 cursor-pointer" id="user-menu">
+                                <span class="sr-only">Open user menu</span>
+                                <img class="h-8 w-8 rounded-full object-cover object-center" 
+                                     src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}" 
+                                     alt="{{ request.user.username }}'s profile picture"
+                                     loading="lazy">
+                            </a>
+                        </div>
+                    </div>
+
                     <div class="relative pl-4">
                         <button id="notification-bell" class="text-gray-500 hover:text-gray-700 focus:outline-none">
                             <i class="fas fa-bell text-xl"></i>
@@ -98,73 +102,70 @@
                             {% endif %}
                         </button>
                         
-                        <div id="notification-panel" class="hidden absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                        <div id="notification-panel" class="hidden absolute right-0 mt-2 w-[200px] origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+
                             <div class="p-3 border-b font-medium text-gray-700">Notifications</div>
                             <div id="notification-list" class="py-1 max-h-96 overflow-y-auto">
-                            {% for message in user_messages %}
-    <div id="message-{{ message.id }}" class="flex items-start px-4 py-3 text-sm 
-        {% if message.message_type == 'warning' %} bg-yellow-50 text-yellow-800
-        {% elif message.message_type == 'info' %} bg-blue-50 text-blue-800
-        {% elif message.message_type == 'update' %} bg-green-50 text-green-800
-        {% elif message.message_type == 'report' %} bg-indigo-50 text-indigo-800
-        {% else %} bg-gray-100 text-gray-700 
-        {% endif %}
-    ">
-        <!-- Render HTML inside message -->
-        <div class="flex-grow pr-3">{% autoescape off %}{{ message.message }}{% endautoescape %}</div>
-        
-        <!-- Dismiss button -->
-        <button class="dismiss-notification-btn text-gray-400 hover:text-gray-600" data-message-id="{{ message.id }}">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-{% empty %}
-    <p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>
-{% endfor %}
-
+                                {% for message in user_messages %}
+                                    <div id="message-{{ message.id }}" class="flex items-start px-4 py-3 text-sm 
+                                        {% if message.message_type == 'warning' %} bg-yellow-50 text-yellow-800
+                                        {% elif message.message_type == 'info' %} bg-blue-50 text-blue-800
+                                        {% elif message.message_type == 'update' %} bg-green-50 text-green-800
+                                        {% elif message.message_type == 'report' %} bg-indigo-50 text-indigo-800
+                                        {% else %} bg-gray-100 text-gray-700 
+                                        {% endif %}">
+                                        <div class="flex-grow pr-3">{% autoescape off %}{{ message.message }}{% endautoescape %}</div>
+                                        <button class="dismiss-notification-btn text-gray-400 hover:text-gray-600" data-message-id="{{ message.id }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                {% empty %}
+                                    <p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="ml-4 relative flex-shrink-0">
-                        <a href="{% url 'profile' %}" class="bg-white rounded-full flex text-sm hover:outline-none hover:ring-2 hover:ring-offset-2 hover:ring-green-500 cursor-pointer" id="user-menu">
-                            <span class="sr-only">Open user menu</span>
-                            <img class="h-8 w-8 rounded-full object-cover object-center" src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}" alt="Profile photo">
-                        </a>
+                    <div class="flex items-center sm:hidden">
+                        <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" aria-controls="mobile-menu" aria-expanded="false">
+                            <span class="sr-only">Open main menu</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
                     </div>
-                </div>
-                
-                <!-- Mobile menu button -->
-                <div class="flex items-center sm:hidden">
-                    <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" aria-controls="mobile-menu" aria-expanded="false">
-                        <span class="sr-only">Open main menu</span>
-                        <i class="fas fa-bars"></i>
-                    </button>
                 </div>
             </div>
         </div>
         
-        <!-- Mobile menu, show/hide based on menu state -->
         <div id="mobile-menu" class="mobile-menu sm:hidden bg-white border-t border-gray-200">
             <div class="px-2 pt-2 pb-3 space-y-1">
-                {% if request.resolver_match.url_name == 'owner_dashboard' or request.resolver_match.url_name == 'edit_turf' or request.resolver_match.url_name == 'recent_bookings' or request.resolver_match.url_name == 'turf_register' %}
-                <a href="{% url 'home' %}" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-green-500">Home</a>
-                {% else %}
-                <a href="{% url 'turfs' %}" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-green-500">Book Now</a>
-                {% endif %}
-                
-                {% if request.user.role == 'owner' %}
-                <a href="{% url 'dashboard_redirect' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Owner Dashboard</a>
-                {% elif request.user.is_staff %}
-                <a href="{% url 'admin_dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
-                {% endif %}
-                
-                <a href="{% url 'profile' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Profile</a>
+                <a href="{% url 'home' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Home</a>
+                <a href="{% url 'turfs' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Turfs</a>
+                <a href="{% url 'booking' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Bookings</a>
+                <a href="{% url 'favorites' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Favourites</a>
+            </div>
+            <div class="pt-4 pb-3 border-t border-gray-200">
+                <div class="flex items-center px-4">
+                    <div class="flex-shrink-0">
+                        <img class="h-10 w-10 rounded-full object-cover" src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'img/dp.jpg' %}{% endif %}" alt="">
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-base font-medium text-gray-800">{{ request.user.username }}</div>
+                        <div class="text-sm font-medium text-gray-500">{{ request.user.email }}</div>
+                    </div>
+                </div>
+                <div class="mt-3 px-2 space-y-1">
+                    <a href="{% url 'profile' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Your Profile</a>
+                    {% if request.user.role == 'owner' %}
+                        <a href="{% url 'dashboard_redirect' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Owner Dashboard</a>
+                    {% elif request.user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-500 hover:text-white">Logout</a>
+                </div>
             </div>
         </div>
     </nav>
-
-    <!-- ========== DJANGO MESSAGES ========== -->
+    
     {% if messages %}
     <div id="message-container" class="sticky top-0 z-20 w-full px-4 sm:px-6 lg:px-8 message-popup">
         {% for message in messages %}
@@ -184,7 +185,6 @@
     </div>
     {% endif %}
     
-    <!-- Main Content -->
     <main>
         {% block content %}{% endblock %}
     </main>
@@ -192,12 +192,12 @@
     <footer class="bg-green-900 text-white">
         <div class="container mx-auto px-4 py-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="col-span-2">
+                <div class="md:col-span-2">
                     <h3 class="text-xl font-bold mb-3 flex items-center">
                         <i class="fas fa-futbol text-white text-2xl mr-2"></i>
                         GoTurfy
                     </h3>
-                    <p class="text-green-200 text-sm w-[70%]">Your premier destination for booking quality sports facilities. Play more, worry less!</p>
+                    <p class="text-green-200 text-sm md:w-[70%]">Your premier destination for booking quality sports facilities. Play more, worry less!</p>
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold mb-3 text-white">Quick Links</h3>
@@ -220,146 +220,162 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
     <script>
-        // Mobile menu functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        /**
+         * Initializes the mobile menu toggle functionality.
+         */
+        function initMobileMenu() {
+            const menuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('active');
-                    const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-                    mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
-                    
-                    // Change icon based on menu state
-                    const icon = mobileMenuButton.querySelector('i');
-                    if (icon) {
-                        if (mobileMenu.classList.contains('active')) {
-                            icon.classList.remove('fa-bars');
-                            icon.classList.add('fa-times');
-                        } else {
-                            icon.classList.remove('fa-times');
-                            icon.classList.add('fa-bars');
-                        }
-                    }
-                });
+            if (!menuButton || !mobileMenu) return;
+
+            const menuIcon = menuButton.querySelector('i');
+
+            const toggleMenu = (forceClose = false) => {
+                const isOpen = mobileMenu.classList.contains('active');
+                const newState = forceClose ? false : !isOpen;
+
+                if (forceClose && !isOpen) return; // Already closed, do nothing
+
+                mobileMenu.classList.toggle('active', newState);
+                menuButton.setAttribute('aria-expanded', newState);
                 
-                // Close menu when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target) && mobileMenu.classList.contains('active')) {
-                        mobileMenu.classList.remove('active');
-                        mobileMenuButton.setAttribute('aria-expanded', 'false');
-                        const icon = mobileMenuButton.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('fa-times');
-                            icon.classList.add('fa-bars');
-                        }
-                    }
-                });
-            }
+                if (menuIcon) {
+                    menuIcon.classList.toggle('fa-times', newState);
+                    menuIcon.classList.toggle('fa-bars', !newState);
+                }
+            };
+
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMenu();
+            });
             
-            // Notification functionality
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !menuButton.contains(e.target)) {
+                    toggleMenu(true); // Force close
+                }
+            });
+        }
+
+        /**
+         * Initializes the notification panel and its dismissal logic.
+         */
+        function initNotifications() {
             const bell = document.getElementById('notification-bell');
             const panel = document.getElementById('notification-panel');
             const list = document.getElementById('notification-list');
             const countBadge = document.getElementById('notification-count');
 
-            if (bell && panel) {
-                // Toggle notification panel
-                bell.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                    panel.classList.toggle('hidden');
-                });
+            if (!bell || !panel) return;
 
-                // Close panel when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (panel && !panel.classList.contains('hidden') && !bell.contains(event.target) && !panel.contains(event.target)) {
-                        panel.classList.add('hidden');
-                    }
-                });
-            }
+            // Toggle panel visibility on bell click
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                panel.classList.toggle('hidden');
+            });
 
-            if (list) {
-                // Handle dismissing a notification
-                list.addEventListener('click', function(e) {
-                    const dismissButton = e.target.closest('.dismiss-notification-btn');
-                    if (dismissButton) {
-                        const messageId = dismissButton.dataset.messageId;
-                        // Create the URL for the fetch request
-                        const url = `{% url 'delete_message' 0 %}`.replace('0', messageId);
+            // Close panel when clicking outside of it
+            document.addEventListener('click', (e) => {
+                if (!panel.classList.contains('hidden') && !panel.contains(e.target) && !bell.contains(e.target)) {
+                    panel.classList.add('hidden');
+                }
+            });
 
-                        fetch(url, {
-                            method: 'POST',
-                            headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                // 1. Remove the message from the UI
-                                const messageElement = document.getElementById(`message-${messageId}`);
-                                if (messageElement) {
-                                    messageElement.remove();
-                                }
-                                
-                                // 2. Decrement the count
-                                if (countBadge) {
-                                    let currentCount = parseInt(countBadge.textContent);
-                                    if (currentCount > 1) {
-                                        countBadge.textContent = currentCount - 1;
-                                    } else {
-                                        countBadge.remove();
-                                    }
-                                }
-
-                                // 3. Show "no notifications" message if list is empty
-                                if (list.children.length === 0 || (list.children.length === 1 && list.children[0].id === "no-notifications-msg")) {
-                                    list.innerHTML = '<p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>';
-                                }
-                            }
-                        });
-                    }
-                });
-            }
+            // Handle dismissal of individual notifications via event delegation
+            if (!list) return;
             
-            // Django Messages dismissal
-            function setupMessageDismissal() {
-                const messageContainer = document.getElementById('message-container');
-                if (!messageContainer) return;
-                
-                const messages = messageContainer.querySelectorAll('[role="alert"]');
-                messages.forEach(messageDiv => {
-                    const closeButton = messageDiv.querySelector('.close-button');
-                    if (closeButton) {
-                        closeButton.addEventListener('click', () => {
-                            messageDiv.classList.add('hidden');
-                            setTimeout(() => messageDiv.remove(), 300);
-                        });
-                    }
+            list.addEventListener('click', (e) => {
+                const dismissButton = e.target.closest('.dismiss-notification-btn');
+                if (!dismissButton) return;
+
+                const messageId = dismissButton.dataset.messageId;
+                const messageElement = document.getElementById(`message-${messageId}`);
+                if (!messageElement) return;
+
+                const url = `{% url 'delete_message' 0 %}`.replace('0', messageId);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') return;
+
+                    // Fade out and remove the message element
+                    messageElement.style.transition = 'opacity 0.3s ease';
+                    messageElement.style.opacity = '0';
                     setTimeout(() => {
-                        messageDiv.classList.add('hidden');
-                        setTimeout(() => messageDiv.remove(), 300);
-                    }, 6000);
-                });
-            }
-            setupMessageDismissal();
-            
-            // CSRF token function for POST requests
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
+                        messageElement.remove();
+                        // After removal, check if the list is empty
+                        if (list.children.length === 0) {
+                            list.innerHTML = `<p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>`;
+                        }
+                    }, 300);
+
+                    // Update the notification count badge
+                    if (countBadge) {
+                        const currentCount = parseInt(countBadge.textContent, 10);
+                        if (currentCount > 1) {
+                            countBadge.textContent = currentCount - 1;
+                        } else {
+                            countBadge.remove();
                         }
                     }
+                })
+                .catch(error => console.error('Error deleting message:', error));
+            });
+        }
+
+        /**
+         * Initializes automatic and manual dismissal for Django's flash messages.
+         */
+        function initDjangoMessages() {
+            const messageContainer = document.getElementById('message-container');
+            if (!messageContainer) return;
+
+            const messages = messageContainer.querySelectorAll('[role="alert"]');
+            messages.forEach(message => {
+                const dismiss = () => {
+                    message.style.transition = 'opacity 0.3s ease';
+                    message.style.opacity = '0';
+                    setTimeout(() => message.remove(), 300);
+                };
+
+                message.querySelector('.close-button')?.addEventListener('click', dismiss);
+                setTimeout(dismiss, 6000); // Auto-dismiss after 6 seconds
+            });
+        }
+
+        /**
+         * Retrieves a cookie value by name. Required for Django POST requests.
+         * @param {string} name - The name of the cookie to retrieve.
+         * @returns {string|null} The cookie value or null if not found.
+         */
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
-                return cookieValue;
             }
-        });
+            return cookieValue;
+        }
+
+        // --- Initialize all functionalities ---
+        initMobileMenu();
+        initNotifications();
+        initDjangoMessages();
+    });
     </script>
 </body>
 </html>

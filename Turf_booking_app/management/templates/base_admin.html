@@ -4,18 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turf Admin - {% block title %}Dashboard{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+    
     <style>
-        .sidebar { transition: all 0.3s; }
-        .sidebar-collapsed { width: 80px; }
-        .sidebar-collapsed .sidebar-text, .sidebar-collapsed .logo-text { display: none; }
-        .sidebar-collapsed .menu-item { justify-content: center; }
-        .content { transition: all 0.3s; }
-        .content-expanded { margin-left: 80px; }
-        /* Style for the active menu link */
+        /* Custom styles for transitions and sidebar states */
+        .sidebar, .content {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Desktop Collapsed State */
+        .sidebar-collapsed {
+            width: 80px; /* Use standard Tailwind: w-20 */
+        }
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .logo-text {
+            display: none;
+        }
+        .sidebar-collapsed .menu-item {
+            justify-content: center;
+        }
+        .content-expanded {
+            margin-left: 80px; /* Use standard Tailwind: ml-20 */
+        }
+
+        /* Active Menu Link Style */
         .active-menu {
             background-color: #3B82F6; /* blue-500 */
             color: white !important;
@@ -26,8 +44,11 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <div class="flex h-screen overflow-hidden">
-        <div id="sidebar" class="sidebar bg-gray-800 text-white w-64 fixed h-full flex flex-col">
+    <div class="relative min-h-screen md:flex">
+        
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <div id="sidebar" class="sidebar bg-gray-800 text-white w-64 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30 flex flex-col">
             <div class="p-4 flex items-center space-x-2 border-b border-gray-700">
                 <div class="bg-blue-500 p-2 rounded-lg">
                     <i class="fas fa-futbol text-white"></i>
@@ -39,11 +60,11 @@
                 {% if request.user.profile_picture %}
                     <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-full w-10 h-10 object-cover">
                 {% else %}
-                    <div class="rounded-full w-10 h-10 bg-purple-600 flex items-center justify-center text-white">
+                    <div class="rounded-full w-10 h-10 bg-purple-600 flex items-center justify-center text-white flex-shrink-0">
                         <i class="fas fa-user"></i>
                     </div>
                 {% endif %}
-              <div class="sidebar-text">
+                <div class="sidebar-text">
                     <div class="font-medium">Admin User</div>
                     <div class="text-xs text-gray-400">{{ request.user.email }}</div>
                 </div>
@@ -64,7 +85,6 @@
                             <span class="sidebar-text ml-3">Users</span>
                         </a>
                     </li>
-                 
                     <li>
                         <a href="{% url 'turfs_admin' %}" class="menu-item flex items-center p-2 rounded-lg hover:bg-gray-700 {% if current_url == 'turfs_admin' %}active-menu{% endif %}">
                             <i class="fas fa-map-marked-alt w-6 text-center"></i>
@@ -88,260 +108,262 @@
             </nav>
 
             <div class="p-4 border-t border-gray-700">
-                <button id="toggle-sidebar" class="w-full flex items-center justify-center p-2 rounded-lg hover:bg-gray-700">
+                <button id="toggle-sidebar" class="w-full hidden md:flex items-center justify-center p-2 rounded-lg hover:bg-gray-700">
                     <i class="fas fa-chevron-left w-6 text-center"></i>
                     <span class="sidebar-text ml-3">Collapse</span>
                 </button>
             </div>
         </div>
 
-        <div id="content" class="content flex-1 overflow-auto ml-64 ">
-
-<!-- ========== DJANGO MESSAGES ========== -->
-    {% if messages %}
-    <div id="message-container" class="sticky top-0 z-20 w-full px-4 sm:px-6 lg:px-8 message-popup">
-        {% for message in messages %}
-        <div class="relative flex items-center justify-between p-3 mt-4 mb-3 rounded-md shadow-md
-            {% if message.tags == 'success' %} bg-green-100 text-green-800
-            {% elif message.tags == 'error' %} bg-red-100 text-red-800
-            {% elif message.tags == 'info' %} bg-blue-100 text-blue-800
-            {% elif message.tags == 'warning' %} bg-yellow-100 text-yellow-800
-            {% endif %}"
-            role="alert" aria-live="assertive">
-            <p class="mr-4">{{ message }}</p>
-            <button type="button" class="close-button text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded-full p-1" aria-label="Dismiss message">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-<header class="bg-white shadow-sm">
-    <div class="flex justify-between items-center p-4">
-        <div class="flex items-center space-x-4">
-            <button id="mobile-menu-button" class="md:hidden text-gray-500">
-                <i class="fas fa-bars"></i>
-            </button>
-            <h1 class="text-xl font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
-        </div>
-
-        <div class="flex items-center space-x-4">
-            <!-- notifications -->
-            <div class="relative">
-                <button id="notification-bell" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                    <i class="fas fa-bell text-xl"></i>
-                    {% if unread_count > 0 %}
-                    <span id="notification-count" class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">{{ unread_count }}</span>
-                    {% endif %}
-                </button>
-                
-                <div id="notification-panel" class="hidden absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <div class="p-3 border-b font-medium text-gray-700">Notifications</div>
-                    <div id="notification-list" class="py-1 max-h-96 overflow-y-auto">
-                    {% for message in user_messages %}
-    <div id="message-{{ message.id }}" class="flex items-start px-4 py-3 text-sm 
-        {% if message.message_type == 'warning' %} bg-yellow-50 text-yellow-800
-        {% elif message.message_type == 'info' %} bg-blue-50 text-blue-800
-        {% elif message.message_type == 'update' %} bg-green-50 text-green-800
-        {% elif message.message_type == 'report' %} bg-indigo-50 text-indigo-800
-        {% else %} bg-gray-100 text-gray-700 
-        {% endif %}
-    ">
-        <!-- Render HTML inside message -->
-        <div class="flex-grow pr-3">{% autoescape off %}{{ message.message }}{% endautoescape %}</div>
-        
-        <!-- Dismiss button -->
-        <button class="dismiss-notification-btn text-gray-400 hover:text-gray-600" data-message-id="{{ message.id }}">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-{% empty %}
-    <p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>
-{% endfor %}
-
-                    </div>
-                </div>
-            </div>
+        <div id="content" class="content flex-1 flex flex-col overflow-hidden ">
             
-            <div class="relative">
-                <div id="user-menu-button" class="flex items-center space-x-2 cursor-pointer">
-                    {% if request.user.profile_picture %}
-                        <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-full w-8 h-8 object-cover">
-                    {% else %}
-                        <div class="rounded-full w-8 h-8 bg-purple-600 flex items-center justify-center text-white">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    {% endif %}
-                    <span class="hidden md:inline">Admin</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </div>
-                <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <div class="py-1">
-                        <a href="{% url 'profile' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-user-circle fa-fw mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Your Profile
-                        </a>
-                        <a href="{% url 'home' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-home fa-fw mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Home
-                        </a>
+            <header class="bg-white shadow-sm">
+                <div class="flex justify-between items-center p-4">
+                    <div class="flex items-center space-x-4">
+                        <button id="mobile-menu-button" class="md:hidden text-gray-500">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
                     </div>
-                    <div class="border-t border-gray-100"></div>
-                    <div class="py-1">
-                        <a href="{% url 'logout' %}" class="group flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                            <i class="fas fa-arrow-right-from-bracket fa-fw mr-3 text-red-400 group-hover:text-red-500"></i>
-                            Sign out
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
 
-            <main class="p-4 ">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button id="notification-bell" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-bell text-xl"></i>
+                                {% if unread_count > 0 %}
+                                <span id="notification-count" class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">{{ unread_count }}</span>
+                                {% endif %}
+                            </button>
+                            <div id="notification-panel" class="hidden absolute right-0 mt-2 w-72 sm:w-80 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="p-3 border-b font-medium text-gray-700">Notifications</div>
+                                <div id="notification-list" class="py-1 max-h-96 overflow-y-auto">
+                                    {% for message in user_messages %}
+                                        <div id="message-{{ message.id }}" class="flex items-start px-4 py-3 text-sm {% if message.message_type == 'warning' %}bg-yellow-50 text-yellow-800{% elif message.message_type == 'info' %}bg-blue-50 text-blue-800{% elif message.message_type == 'update' %}bg-green-50 text-green-800{% elif message.message_type == 'report' %}bg-indigo-50 text-indigo-800{% else %}bg-gray-100 text-gray-700{% endif %}">
+                                            <div class="flex-grow pr-3">{% autoescape off %}{{ message.message }}{% endautoescape %}</div>
+                                            <button class="dismiss-notification-btn text-gray-400 hover:text-gray-600" data-message-id="{{ message.id }}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    {% empty %}
+                                        <p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <button id="user-menu-button" class="flex items-center space-x-2 cursor-pointer">
+                                {% if request.user.profile_picture %}
+                                    <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-full w-8 h-8 object-cover">
+                                {% else %}
+                                    <div class="rounded-full w-8 h-8 bg-purple-600 flex items-center justify-center text-white">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <span class="hidden md:inline">Admin</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <a href="{% url 'profile' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-circle fa-fw mr-3 text-gray-400"></i> Your Profile
+                                    </a>
+                                    <a href="{% url 'home' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-home fa-fw mr-3 text-gray-400"></i> Home
+                                    </a>
+                                </div>
+                                <div class="border-t border-gray-100"></div>
+                                <div class="py-1">
+                                    <a href="{% url 'logout' %}" class="group flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class="fas fa-arrow-right-from-bracket fa-fw mr-3 text-red-400"></i> Sign out
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {% if messages %}
+            <div id="message-container" class="w-full px-4 sm:px-6 lg:px-8">
+                {% for message in messages %}
+                <div class="relative flex items-center justify-between p-3 mt-4 rounded-md shadow-md {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'info' %}bg-blue-100 text-blue-800{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800{% endif %}" role="alert">
+                    <p class="mr-4">{{ message }}</p>
+                    <button type="button" class="close-button text-current hover:opacity-75"><i class="fas fa-times"></i></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6">
                 {% block content %}{% endblock %}
             </main>
         </div>
     </div>
 
-
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const bell = document.getElementById('notification-bell');
-    const panel = document.getElementById('notification-panel');
-    const list = document.getElementById('notification-list');
-    const countBadge = document.getElementById('notification-count');
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        /**
+         * Initializes sidebar behavior (mobile toggle, desktop collapse) and dropdown menus.
+         */
+        function initSidebarAndMenus() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            const overlay = document.getElementById('sidebar-overlay');
+            const mobileMenuBtn = document.getElementById('mobile-menu-button');
+            const desktopToggleBtn = document.getElementById('toggle-sidebar');
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationPanel = document.getElementById('notification-panel');
 
-    // Toggle notification panel
-    bell.addEventListener('click', function(event) {
-        event.stopPropagation();
-        panel.classList.toggle('hidden');
-    });
+            // --- Mobile Sidebar Toggle ---
+            const toggleMobileMenu = () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            };
+            
+            if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
 
-    // Close panel when clicking outside
-    document.addEventListener('click', function(event) {
-        if (panel && !panel.classList.contains('hidden') && !bell.contains(event.target)) {
-            panel.classList.add('hidden');
-        }
-    });
-
-    // Handle dismissing a notification
-    list.addEventListener('click', function(e) {
-        const dismissButton = e.target.closest('.dismiss-notification-btn');
-        if (dismissButton) {
-            const messageId = dismissButton.dataset.messageId;
-            // Create the URL for the fetch request
-            const url = `{% url 'delete_message' 0 %}`.replace('0', messageId);
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') } // Assumes you have a getCookie function
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // 1. Remove the message from the UI
-                    document.getElementById(`message-${messageId}`).remove();
+            // --- Desktop Sidebar Collapse ---
+            if (desktopToggleBtn) {
+                desktopToggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    sidebar.classList.toggle('w-64');
+                    sidebar.classList.toggle('w-20');
                     
-                    // 2. Decrement the count
-                    let currentCount = parseInt(countBadge.textContent);
-                    if (currentCount > 1) {
-                        countBadge.textContent = currentCount - 1;
+                    content.classList.toggle('content-expanded');
+                    content.classList.toggle('md:ml-64');
+                    content.classList.toggle('md:ml-20');
+                    
+                    const icon = desktopToggleBtn.querySelector('i');
+                    const text = desktopToggleBtn.querySelector('.sidebar-text');
+                    
+                    if (sidebar.classList.contains('sidebar-collapsed')) {
+                        icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+                        if (text) text.textContent = 'Expand';
                     } else {
-                        countBadge.style.display = 'none';
+                        icon.classList.replace('fa-chevron-right', 'fa--chevron-left');
+                        if (text) text.textContent = 'Collapse';
                     }
+                });
+            }
 
-                    // 3. Show "no notifications" message if list is empty
-                    if (list.children.length === 0 || (list.children.length === 1 && list.children[0].id === "no-notifications-msg")) {
-                        list.innerHTML = '<p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>';
-                    }
+            // --- Dropdown Toggles (User Menu & Notifications) ---
+            const setupDropdown = (button, panel) => {
+                if (!button || !panel) return;
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    panel.classList.toggle('hidden');
+                });
+            };
+            
+            setupDropdown(userMenuButton, userMenu);
+            setupDropdown(notificationBell, notificationPanel);
+
+            // --- Close dropdowns when clicking outside ---
+            document.addEventListener('click', (e) => {
+                if (userMenu && !userMenu.classList.contains('hidden') && !userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+                if (notificationPanel && !notificationPanel.classList.contains('hidden') && !notificationPanel.contains(e.target) && !notificationBell.contains(e.target)) {
+                    notificationPanel.classList.add('hidden');
                 }
             });
         }
-    });
-    
-    // You'll need this function to get the CSRF token for POST requests
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+
+        /**
+         * Initializes dismissal for Django flash messages.
+         */
+        function initFlashMessages() {
+            const messages = document.querySelectorAll('#message-container [role="alert"]');
+            messages.forEach(message => {
+                const dismiss = () => {
+                    message.style.transition = 'opacity 0.3s ease';
+                    message.style.opacity = '0';
+                    setTimeout(() => message.remove(), 300);
+                };
+                message.querySelector('.close-button')?.addEventListener('click', dismiss);
+                setTimeout(dismiss, 6000); // Auto-dismiss after 6 seconds
+            });
+        }
+        
+        /**
+         * Initializes dismissal for individual notifications in the panel via Fetch API.
+         */
+        function initNotificationDismissal() {
+            const list = document.getElementById('notification-list');
+            if (!list) return;
+
+            list.addEventListener('click', (e) => {
+                const dismissButton = e.target.closest('.dismiss-notification-btn');
+                if (!dismissButton) return;
+                
+                const messageId = dismissButton.dataset.messageId;
+                const messageElement = document.getElementById(`message-${messageId}`);
+                if (!messageElement) return;
+
+                const url = `{% url 'delete_message' 0 %}`.replace('0', messageId);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                })
+                .then(response => response.ok ? response.json() : Promise.reject('Network response was not ok.'))
+                .then(data => {
+                    if (data.status !== 'success') return;
+                    
+                    const countBadge = document.getElementById('notification-count');
+                    
+                    // Fade out and remove element
+                    messageElement.style.transition = 'opacity 0.3s ease';
+                    messageElement.style.opacity = '0';
+                    setTimeout(() => {
+                        messageElement.remove();
+                        if (list.children.length === 0) {
+                            list.innerHTML = `<p id="no-notifications-msg" class="text-center text-gray-500 p-4">No new notifications</p>`;
+                        }
+                    }, 300);
+
+                    // Update count badge
+                    if (countBadge) {
+                        const currentCount = parseInt(countBadge.textContent, 10);
+                        if (currentCount > 1) {
+                            countBadge.textContent = currentCount - 1;
+                        } else {
+                            countBadge.remove();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error dismissing notification:', error));
+            });
+        }
+
+        /**
+         * Retrieves CSRF token cookie for Django POST requests.
+         */
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
-});
-</script>
-<script>  // --- Django Messages ---
-    function setupMessageDismissal() {
-        const messageContainer = document.getElementById('message-container');
-        if (!messageContainer) return;
-        const messages = messageContainer.querySelectorAll('[role="alert"]');
-        messages.forEach(messageDiv => {
-            const closeButton = messageDiv.querySelector('.close-button');
-            if (closeButton) {
-                closeButton.addEventListener('click', () => {
-                    messageDiv.classList.add('hidden');
-                    setTimeout(() => messageDiv.remove(), 300);
-                });
-            }
-            setTimeout(() => {
-                messageDiv.classList.add('hidden');
-                setTimeout(() => messageDiv.remove(), 300);
-            }, 6000);
-        });
-    }
-    setupMessageDismissal();
-</script>
 
-    <script>
-      
-        
-        // Toggle sidebar
-        document.getElementById('toggle-sidebar').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
-            sidebar.classList.toggle('sidebar-collapsed');
-            content.classList.toggle('content-expanded');
-            
-            const icon = this.querySelector('i');
-            const text = this.querySelector('.sidebar-text');
-            if (sidebar.classList.contains('sidebar-collapsed')) {
-                icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
-                if (text) text.textContent = 'Expand';
-            } else {
-                icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
-                if (text) text.textContent = 'Collapse';
-            }
-        });
-
-        // Toggle mobile menu
-        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
-            document.getElementById('sidebar')?.classList.toggle('hidden');
-        });
-
-        // Toggle user menu
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userMenu = document.getElementById('user-menu');
-        userMenuButton?.addEventListener('click', function() {
-            userMenu?.classList.toggle('hidden');
-        });
-
-        // Close menus when clicking outside
-        document.addEventListener('click', function(event) {
-            if (userMenu && userMenuButton && !userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
-        
-        // The old "Active menu item" JavaScript has been removed because Django now handles it.
+        // --- Initialize all scripts ---
+        initSidebarAndMenus();
+        initFlashMessages();
+        initNotificationDismissal();
+    });
     </script>
 </body>
 </html>
