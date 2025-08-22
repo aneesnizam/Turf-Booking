@@ -3,308 +3,269 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Page Header -->
+    <form method="get" action="" class="space-y-4">
+    
     <div class="flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">Review Management</h1>
-        <div class="flex space-x-3">
-            <div class="relative">
-                <input type="text" placeholder="Search reviews..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            </div>
+        <div class="relative">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search by User or Turf..." 
+                   class="pl-10 pr-4 py-2 w-64 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg shadow">
-        <div class="flex flex-wrap items-center gap-4">
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+        <div class="flex flex-wrap items-end gap-4">
+            
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                <select class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All Ratings</option>
-                    <option>5 Stars</option>
-                    <option>4 Stars</option>
-                    <option>3 Stars</option>
-                    <option>2 Stars</option>
-                    <option>1 Star</option>
+                <label for="rating-filter" class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                <select id="rating-filter" name="rating" class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" {% if not request.GET.rating %}selected{% endif %}>All Ratings</option>
+                    <option value="5" {% if request.GET.rating == '5' %}selected{% endif %}>5 Stars</option>
+                    <option value="4" {% if request.GET.rating == '4' %}selected{% endif %}>4 Stars</option>
+                    <option value="3" {% if request.GET.rating == '3' %}selected{% endif %}>3 Stars</option>
+                    <option value="2" {% if request.GET.rating == '2' %}selected{% endif %}>2 Stars</option>
+                    <option value="1" {% if request.GET.rating == '1' %}selected{% endif %}>1 Star</option>
                 </select>
             </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Turf</label>
-                <select class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All Turfs</option>
-                    <option>Champion Turf</option>
-                    <option>Sports Hub</option>
-                    <option>Elite Sports Arena</option>
+                <label for="turf-filter" class="block text-sm font-medium text-gray-700 mb-1">Turf</label>
+                <select id="turf-filter" name="turf_name" class="border rounded-lg px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" {% if not request.GET.turf_name %}selected{% endif %}>All Turfs</option>
+                    {% for turf in turf_names %}
+                        <option value="{{ turf }}" {% if request.GET.turf_name == turf %}selected{% endif %}>{{ turf }}</option>
+                    {% endfor %}
                 </select>
             </div>
+            
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <select class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All Dates</option>
-                    <option>Today</option>
-                    <option>This Week</option>
-                    <option>This Month</option>
+                <label for="date-filter" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <select id="date-filter" name="date_range" class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" {% if not request.GET.date_range %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>Today</option>
+                    <option value="week" {% if request.GET.date_range == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if request.GET.date_range == 'month' %}selected{% endif %}>This Month</option>
                 </select>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select class="border rounded-lg px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All Statuses</option>
-                    <option>Approved</option>
-                    <option>Pending</option>
-                    <option>Flagged</option>
-                </select>
+
+            <div class="flex items-center pt-7">
+                <input id="warnings-filter" name="has_warnings" type="checkbox" value="true" {% if request.GET.has_warnings %}checked{% endif %}
+                       class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <label for="warnings-filter" class="ml-2 text-sm text-gray-700">Has Warnings</label>
             </div>
-            <button class="self-end bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg">
-                <i class="fas fa-filter mr-2"></i>Filter
-            </button>
+            
+            <div class="flex items-center space-x-2">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-filter mr-2"></i>Filter
+                </button>
+                <a href="{% url 'reviews_admin' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg">Clear</a>
+            </div>
+
         </div>
     </div>
-
+</form>
     <!-- Reviews Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turf</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warnings</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
+                    {% for review in reviews %}
                     <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <div class="text-sm text-gray-900">#RT-00{{review.id}}</div>
+                        </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">"Great turf with excellent facilities. The ground was well maintained and the staff was helpful."</div>
+                            <div class="text-sm font-medium text-gray-900">{{review.comment}}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
-                                </div>
+                              
                                 <div class="ml-4">
-                                    <div class="text-sm text-gray-900">user123@example.com</div>
+                                    <div class="text-sm text-gray-900">{{review.user.email}}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Champion Turf</div>
+                            <div class="text-sm text-gray-900">{{review.turf.turf_name}}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
-                                </div>
-                                <span class="ml-1 text-sm text-gray-500">4.5</span>
-                            </div>
+                         <div class="flex items-center mt-1">
+    <!-- Stars -->
+    <div class="flex items-center text-yellow-400 text-sm">
+        {% for i in "12345" %}
+            {% if forloop.counter <= review.score %}
+                <!-- Show a filled star -->
+                <i class="fas fa-star"></i>
+            {% else %}
+                <!-- Show an empty star -->
+                <i class="far fa-star"></i>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <!-- Rating text -->
+    <span class="ml-2 text-sm text-gray-600">
+        {{ review.score|floatformat:1 }}
+    </span>
+</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            2 days ago
+                            {{ review.created_at|timesince}} ago
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+                       
+                         <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Warns:{{review.user.warning_count}}</span>
                         </td>
+
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="viewReview(1)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
-                            <button onclick="deleteReview(1)" class="text-red-600 hover:text-red-900">Delete</button>
+                            <button onclick="viewReview(this)" 
+                            data-id="{{ review.id }}"
+                            {% if review.user.profile_picture %}
+    data-profile="{{ review.user.profile_picture.url }}"
+{% else %}
+    data-profile=""
+{% endif %}
+                            data-date="{{ review.created_at|timesince}} ago"
+                            data-comment="{% if review.comment %}{{ review.comment }}{% else %} No comment {% endif %}"
+                            data-score="{{ review.score|floatformat:1 }}"
+                            data-booking="{{ review.booking.id }}"
+                            data-turf="{{ review.turf.turf_name }}"
+                            data-username="{{ review.user.fullname }}"
+                            data-email="{{ review.user.email }}"
+                            data-warnings=" {% if review.admin_warning_note %}Warned: {{ review.admin_warning_note }} {% else %} No warnings {% endif %}"
+
+
+                            class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                            {% if review.admin_warning_note %}
+                              <button disabled class="px-3 py-1  text-red-700 ">Warned</button>
+                              {% else %}
+                              <button onclick="warnUser({{ review.id }})" class="px-3 py-1  text-yellow-700 ">Warn User</button>
+                              {% endif %}
                         </td>
                     </tr>
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">"Good experience overall, but the changing rooms could be cleaner."</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm text-gray-900">sportsfan@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Sports Hub</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <span class="ml-1 text-sm text-gray-500">4.0</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            3 days ago
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="viewReview(2)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
-                            <button onclick="deleteReview(2)" class="text-red-600 hover:text-red-900">Delete</button>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">"This place is terrible! The turf was not maintained and the staff was rude."</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full" src="https://via.placeholder.com/40" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm text-gray-900">angryuser@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Elite Sports Arena</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <span class="ml-1 text-sm text-gray-500">1.0</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            1 day ago
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Flagged</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="viewReview(3)" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
-                            <button onclick="approveReview(3)" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
-                            <button onclick="deleteReview(3)" class="text-red-600 hover:text-red-900">Delete</button>
-                        </td>
-                    </tr>
+                   {% endfor %}
                 </tbody>
             </table>
+             {% include "partials/pagination.html" with element=reviews %}
+
         </div>
-        <!-- Pagination -->
-        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">18</span> results
-                    </p>
-                </div>
-                <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Previous</span>
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 1 </a>
-                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 2 </a>
-                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 3 </a>
-                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Next</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </nav>
-                </div>
-            </div>
-        </div>
+  
     </div>
 </div>
 
 <script>
-    function viewReview(reviewId) {
-        // AJAX call or redirect to review detail page
+    function viewReview(el) {
+        const ratings = el.dataset; // Use 'const' for variables that don't get reassigned
+
+        // 1. Function to generate star icons in JavaScript
+        function generateStars(score) {
+            let starsHtml = '';
+            const totalStars = 5;
+            const filledStars = Math.floor(score); // Get the whole number part of the score
+
+            for (let i = 1; i <= totalStars; i++) {
+                if (i <= filledStars) {
+                    // Add a filled star
+                    starsHtml += '<i class="fas fa-star"></i>';
+                } else {
+                    // Add an empty star
+                    starsHtml += '<i class="far fa-star"></i>';
+                }
+            }
+            return starsHtml;
+        }
+
+        function renderProfileImage(imageUrl) {
+            if (imageUrl) {
+                // If a profile image URL exists, return the <img> tag
+                return `<img src="${imageUrl}" class="rounded-full w-16 h-16 mr-4 object-cover">`;
+            } else {
+                // Otherwise, return a div with a user icon and background color
+                return `
+                    <div class="rounded-full w-16 h-16 mr-4 flex items-center justify-center bg-blue-100">
+                        <i class="fas fa-user text-2xl text-blue-500"></i>
+                    </div>
+                `;
+            }
+        }
+
         Swal.fire({
             title: 'Review Details',
-            html: `Loading review details for ID: ${reviewId}...`,
+            html: `Loading review details for ID: ${ratings.id}...`,
             showConfirmButton: false,
             willOpen: () => {
                 Swal.showLoading();
-                // Simulate loading
+                // Simulate loading for 1 second
                 setTimeout(() => {
                     Swal.fire({
                         title: 'Review Details',
                         html: `
-                            <div class="text-left">
-                                <div class="flex items-center mb-4">
-                                    <img src="https://via.placeholder.com/80" class="rounded-full w-16 h-16 mr-4">
-                                    <div>
-                                        <h3 class="font-bold">User ${reviewId}</h3>
-                                        <p>user${reviewId}@example.com</p>
-                                        <div class="flex items-center mt-1">
-                                            <div class="flex text-yellow-400">
-                                                ${reviewId === 1 ? `
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star-half-alt"></i>
-                                                ` : reviewId === 2 ? `
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                ` : `
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                `}
-                                            </div>
-                                            <span class="ml-2 text-sm text-gray-500">${reviewId === 1 ? '4.5' : reviewId === 2 ? '4.0' : '1.0'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <p class="text-gray-500">Turf</p>
-                                    <p>${reviewId === 1 ? 'Champion Turf' : reviewId === 2 ? 'Sports Hub' : 'Elite Sports Arena'}</p>
-                                </div>
-                                <div class="mb-4">
-                                    <p class="text-gray-500">Review</p>
-                                    <p class="text-gray-700">"${reviewId === 1 ? 'Great turf with excellent facilities. The ground was well maintained and the staff was helpful.' : reviewId === 2 ? 'Good experience overall, but the changing rooms could be cleaner.' : 'This place is terrible! The turf was not maintained and the staff was rude.'}"</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <p class="text-gray-500">Status</p>
-                                        <p>${reviewId === 3 ? 'Flagged' : 'Approved'}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-500">Date</p>
-                                        <p>${reviewId === 1 ? '2 days ago' : reviewId === 2 ? '3 days ago' : '1 day ago'}</p>
-                                    </div>
-                                </div>
-                                ${reviewId === 3 ? `
-                                <div class="mt-4 p-3 bg-red-50 rounded-lg">
-                                    <p class="text-gray-500">Flagged Reason</p>
-                                    <p>Inappropriate language</p>
-                                    <p class="text-gray-500 mt-2">Flagged By</p>
-                                    <p>System auto-moderation</p>
-                                </div>
-                                ` : ''}
-                            </div>
+                 <div class="text-left p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+    <div class="flex items-start mb-6">
+        ${renderProfileImage(ratings.profile)}
+        <div class="ml-4 flex-1">
+            <h3 class="font-bold text-lg text-gray-900">${ratings.username}</h3>
+            <p class="text-sm text-gray-500 mb-2">${ratings.email}</p>
+            <div class="flex items-center">
+                <div class="flex items-center text-yellow-400 text-md">
+                    ${generateStars(ratings.score)}
+                </div>
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                    ${parseFloat(ratings.score).toFixed(1)}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+            <p class="text-gray-500 text-sm font-medium mb-1">Turf</p>
+            <p class="font-semibold text-gray-800">${ratings.turf}</p>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm font-medium mb-1">Booking Id</p>
+            <p class="font-semibold text-gray-800">#BK-00${ratings.booking}</p>
+        </div>
+    </div>
+    
+    <div class="mb-6">
+        <p class="text-gray-500 font-semibold text-sm mb-2">Review</p>
+        <p class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-200">
+            ${ratings.comment}
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-6 mb-6">
+      
+        <div>
+            <p class="text-gray-500 text-sm font-medium mb-1">Date</p>
+            <p class="font-semibold text-gray-800">${ratings.date}</p>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <p class="text-gray-500 text-sm font-medium mb-1">Warnings</p>
+            <p class="font-semibold text-gray-800">${ratings.warnings}</p>
+        </div>
+    </div>
+</div>
                         `,
                         showConfirmButton: true,
                         showCancelButton: true,
-                        confirmButtonText: 'Edit Review',
+                        confirmButtonText: 'Ok',
                         cancelButtonText: 'Close'
                     });
                 }, 1000);
@@ -312,52 +273,81 @@
         });
     }
 
-    function approveReview(reviewId) {
-        Swal.fire({
-            title: 'Approve Review?',
-            text: "This review will be visible to all users.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#10B981',
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Yes, approve it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // AJAX call to approve review
-                Swal.fire(
-                    'Approved!',
-                    'The review has been approved.',
-                    'success'
-                ).then(() => {
-                    // Reload or update UI
-                    location.reload();
-                });
+    // This function gets the CSRF token required for Django POST requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
-        });
+        }
     }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+function warnUser(reviewId) {
+    const config = {
+        title: 'Send Warning to User',
+        text: "Compose a warning message below.",
+        icon: 'warning',
+        html: `
+            <div style="margin-top: 15px; text-align: left; padding-left: 55px;">
+                <input type="checkbox" id="delete-comment-checkbox" style="margin-right: 10px;">
+                <label for="delete-comment-checkbox">
+                    <strong>Also delete this comment</strong>
+                </label>
+            </div>
+        `,
+        confirmButtonColor: '#F59E0B',
+        confirmButtonText: 'Submit Action',
+        showCancelButton: true,
+        input: 'textarea',
+        inputPlaceholder: 'Reason for the warning...',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to write a reason!';
+            }
+        }
+    };
 
-    function deleteReview(reviewId) {
-        Swal.fire({
-            title: 'Delete Review?',
-            text: "This review will be permanently removed.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // AJAX call to delete review
-                Swal.fire(
-                    'Deleted!',
-                    'The review has been deleted.',
-                    'success'
-                ).then(() => {
-                    // Reload or update UI
-                    location.reload();
-                });
-            }
-        });
-    }
+    Swal.fire(config).then((result) => {
+        if (result.isConfirmed) {
+            const message = result.value;
+            const shouldDelete = document.getElementById('delete-comment-checkbox').checked;
+
+         
+            let url = "{% url 'warn_user' 0 %}".replace("0", reviewId);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    'message': message,
+                    'delete_comment': shouldDelete
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const successText = shouldDelete
+                        ? 'The user has been warned and the comment was deleted.'
+                        : 'The user has been notified.';
+                    Swal.fire('Action Complete!', successText, 'success')
+                        .then(() => window.location.reload());
+                } else {
+                    Swal.fire('Error!', data.message || 'Something went wrong.', 'error');
+                }
+            });
+        }
+    });
+}
+
 </script>
 {% endblock %}

@@ -5,7 +5,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import TruncDay
 from django.utils import timezone
 from datetime import timedelta
-from accounts.models import Booking,User,Turf,Rating,Sport
+from accounts.models import Booking,User,Turf,Rating,Sport,UserMessage  
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -85,6 +85,12 @@ def users_admin(request):
             Q(fullname__icontains=search_query) | 
             Q(email__icontains=search_query)
         )
+        
+    # ---Can Comment---
+    can_comment_filter = request.GET.get('can_comment')
+    if can_comment_filter:
+        users = users.filter(can_comment=can_comment_filter)
+
 
     # --- Filter Logic ---
     role_filter = request.GET.get('role')
@@ -204,11 +210,6 @@ def block_user(request, user_id):
     return JsonResponse({"success": False, "message": "Invalid request method."}, status=400)
 
 
-@user_passes_test(lambda u: u.is_staff)
-@login_required
-def reviews_admin(request):
-    return render(request,'_reviews_admin.html')
-
 
 
 
@@ -320,3 +321,138 @@ def bookings_admin(request):
         'turf_names': turf_names_options,
     }
     return render(request, '_bookings_admin.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+@login_required
+def reviews_admin(request):
+    # Start with the base queryset
+    reviews = Rating.objects.select_related('user', 'turf').order_by('-created_at')
+
+    # Get filter parameters from the request URL
+    query = request.GET.get('q')
+    rating_filter = request.GET.get('rating')
+    turf_filter = request.GET.get('turf_name')
+    date_range_filter = request.GET.get('date_range')
+    has_warnings_filter = request.GET.get('has_warnings')
+
+    # --- Apply Filters Conditionally ---
+
+    # 1. Search Filter (by user or turf name)
+    if query:
+        reviews = reviews.filter(
+            Q(user__fullname__icontains=query) | 
+            Q(turf__turf_name__icontains=query)
+          
+        )
+
+    # 2. Rating Filter
+    if rating_filter:
+        reviews = reviews.filter(score=rating_filter)
+
+    # 3. Turf Name Filter
+    if turf_filter:
+        reviews = reviews.filter(turf__turf_name=turf_filter)
+
+    # 4. Date Range Filter
+    if date_range_filter:
+        today = timezone.now().date()
+        if date_range_filter == 'today':
+            reviews = reviews.filter(created_at__date=today)
+        elif date_range_filter == 'week':
+            start_of_week = today - timedelta(days=today.weekday())
+            reviews = reviews.filter(created_at__date__gte=start_of_week)
+        elif date_range_filter == 'month':
+            reviews = reviews.filter(created_at__year=today.year, created_at__month=today.month)
+    
+    # 5. "Has Warnings" Filter
+    # This assumes you have a related model for reports/warnings linked to a review.
+    # We filter for reviews that have at least one related report.
+    if has_warnings_filter:
+        reviews = Rating.objects.filter(
+    admin_warning_note__isnull=False
+).exclude(admin_warning_note__exact="")
+
+    # Get all distinct turf names for the dropdown options
+    turf_names_options = Booking.objects.values_list('turf__turf_name', flat=True).distinct()
+        # --- Add Pagination ---
+    paginator = Paginator(reviews, 20) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    
+    context = {
+        'reviews': page_obj,
+        'turf_names': turf_names_options,
+    }
+    return render(request, '_reviews_admin.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def warn_user_view(request, review_id):
+    if request.method == 'POST':
+        try:
+            rating = get_object_or_404(Rating, id=review_id)
+            user_to_warn = rating.user
+
+            data = json.loads(request.body.decode("utf-8"))  # safer decode
+            message = data.get('message', '').strip()
+            delete_comment = data.get('delete_comment', False)
+            
+            if rating.admin_warning_note:
+                return JsonResponse({'status': 'error', 'message': 'This review already has a warning.'}, status=400)
+
+            if not message:
+                return JsonResponse({'status': 'error', 'message': 'Message is required'}, status=400)
+
+            # Store warning note on the rating
+            rating.admin_warning_note = message
+
+            # Increase user’s warning count
+            user_to_warn.warning_count = (user_to_warn.warning_count or 0) + 1
+
+            # Restrict commenting if 3 warnings
+            if user_to_warn.warning_count >= 3:
+                user_to_warn.can_comment = False
+                user_to_warn.comment_banned_at = timezone.now()
+
+            user_to_warn.save()
+            rating.save()
+
+            # Create a UserMessage (instead of WarningMessage with rating)
+            UserMessage.objects.create(
+                user=user_to_warn,
+                message_type='warning',
+               message = (
+    f"⚠️ This is <b>warning {user_to_warn.warning_count}/3</b> "
+    f"for your review on <b>{rating.turf.turf_name}</b>. "
+    f"Reason: <b>{message}</b>. "
+    f"Continued violations may result in <b>restrictions</b>."
+)
+
+
+            )
+
+            # Optionally delete the comment
+            if delete_comment:
+                rating.delete()
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+
+@login_required
+def delete_message(request, message_id):
+   
+    message = get_object_or_404(UserMessage, id=message_id, user=request.user)
+    
+    message.delete()
+    
+    # Option 2: Mark as read (if you want to keep a history)
+    # message.is_read = True
+    # message.save()
+
+    return JsonResponse({'status': 'success'})

@@ -609,61 +609,118 @@
 
 <!-- Review Bar -->
 
-          <div id="reviews" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Customer Reviews</h2>
-            <div class="space-y-6">
-              {% for review in ratings %}
-  <div class="bg-gray-50 p-4 rounded-lg relative">
-  <!-- Delete Button (shown only to authorized users) -->
-  {% if request.user == review.user or request.user.is_staff %}
-<button
-    class="absolute top-[50%] translate-y-[-50%] right-10 text-gray-400 hover:text-red-500 transition-colors cursor-pointer z-10"
-    title="Delete review"
-    onclick="openDeleteModal('{{ review.id }}')"
-  >
-    <i class="fas fa-trash-alt"></i>
-  </button>
-  {% endif %}
+         <div id="reviews" class="tab-content">
+  <h2 class="text-2xl font-bold mb-4">Customer Reviews</h2>
 
-  <div class="flex items-center mb-2">
-    {% if review.user.profile_picture %}
-    <img
-      src="{{ review.user.profile_picture.url }}"
-      alt="User profile"
-      class="w-10 h-10 object-cover rounded-full mr-3"
-    />
-    {% else %}
-    <div
-      class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3"
-    >
-      <i class="fas fa-user text-green-600"></i>
-    </div>
-    {% endif %}
-    <div>
-      <p class="font-medium">
-        {{ review.user.fullname|default:review.user.email }}
-      </p>
-      <div class="flex items-center">
-        {% for i in "12345" %}
-        <i
-          class="fas fa-star text-sm {% if forloop.counter <= review.score %}text-yellow-400{% else %}text-gray-300{% endif %}"
-        ></i>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  <p class="text-gray-700 w-[80%] break-words">
-    {{ review.comment|default:"No comment provided." }}
-  </p>
-  <p class="text-sm text-gray-500 mt-2">
-    {{ review.created_at|timesince }} ago
-  </p>
-</div>
-              {% empty %}
-              <p class="text-gray-500">Be the first to review this turf!</p>
-              {% endfor %}
-            </div>
+  <div class="space-y-6">
+    {% for review in ratings %}
+    <div class="bg-gray-50 p-4 rounded-lg relative">
+      
+      <!-- Delete or Report -->
+      {% if request.user == review.user or request.user.is_staff %}
+        <button
+          class="absolute top-1/2 -translate-y-1/2 right-10 text-gray-400 hover:text-red-500 transition-colors cursor-pointer z-10"
+          title="Delete review"
+          onclick="openDeleteModal('{{ review.id }}')"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      {% else %}
+        <button
+          onclick="openReportModal('{{ review.id }}')"
+          class="absolute top-1/2 -translate-y-1/2 right-10 text-gray-400 hover:text-red-500 transition-colors cursor-pointer z-10"
+        >
+          Report
+        </button>
+      {% endif %}
+
+      <!-- User Info -->
+      <div class="flex items-center mb-2">
+        {% if review.user.profile_picture %}
+          <img src="{{ review.user.profile_picture.url }}" alt="User profile"
+               class="w-10 h-10 object-cover rounded-full mr-3" />
+        {% else %}
+          <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+            <i class="fas fa-user text-green-600"></i>
           </div>
+        {% endif %}
+        <div>
+          <p class="font-medium">{{ review.user.fullname|default:review.user.email }}</p>
+          <div class="flex items-center">
+            {% for i in "12345" %}
+              <i class="fas fa-star text-sm {% if forloop.counter <= review.score %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment -->
+      <p class="text-gray-700 w-[80%] break-words">
+        {{ review.comment|default:"No comment provided." }}
+      </p>
+      <p class="text-sm text-gray-500 mt-2">
+        {{ review.created_at|timesince }} ago
+      </p>
+    </div>
+    {% empty %}
+      <p class="text-gray-500">Be the first to review this turf!</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- Report Modal -->
+<div id="reportModal" class="hidden fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+    <h3 class="text-lg font-semibold mb-4">Report Review</h3>
+    <form method="post" action="{% url 'report_comment' 0 %}" id="reportForm">
+      {% csrf_token %}
+      <input type="hidden" name="review_id" id="reportReviewId">
+
+      <label class="block mb-2 text-sm font-medium text-gray-700">Reason</label>
+      <textarea name="reason" required
+        class="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-red-200"
+        rows="3" placeholder="Enter reason for reporting..."></textarea>
+
+      <div class="flex justify-end mt-4 space-x-3">
+        <button type="button" onclick="closeReportModal()" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+          Cancel
+        </button>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
+          Submit
+        </button>
+      </div>
+    </form>
+    <button onclick="closeReportModal()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+
+
+<script>
+function openReportModal(reviewId) {
+    // This line is fine, it sets the value of a hidden input
+    document.getElementById("reportReviewId").value = reviewId;
+
+    // Get the form element
+    let form = document.getElementById("reportForm");
+
+    // Create the correct URL using the reviewId
+    let url = "{% url 'report_comment' 0 %}".replace("0", reviewId);
+
+    // FIX: Assign the new URL directly to the form's action attribute
+    form.action = url; 
+
+    // Show the modal
+    document.getElementById("reportModal").classList.remove("hidden");
+}
+
+  function closeReportModal() {
+    document.getElementById("reportModal").classList.add("hidden");
+  }
+</script>
+
 
 <!-- Location Bar -->
 

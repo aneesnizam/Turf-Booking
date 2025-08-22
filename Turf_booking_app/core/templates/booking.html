@@ -336,10 +336,19 @@
 </div>
 
 
-      <div class="mb-6">
-        <label for="comment" class="mb-2 block text-sm font-medium text-gray-700">Add a comment (optional)</label>
-        <textarea id="comment" name="comment" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
-      </div>
+ <div class="mb-6">
+    <label for="comment" class="mb-2 block text-sm font-medium text-gray-700">Add a comment (optional)</label>
+    
+    {% if is_comment_restricted %}
+        <textarea id="comment" name="comment" rows="3" 
+                  class="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-gray-500 shadow-sm" 
+                  disabled 
+                  placeholder="Your ability to comment is temporarily restricted. You can still submit a score."></textarea>
+    {% else %}
+        <textarea id="comment" name="comment" rows="3" 
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+    {% endif %}
+</div>
 
       <div class="flex justify-end space-x-3">
         <button id="cancel-rating-btn" type="button" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">

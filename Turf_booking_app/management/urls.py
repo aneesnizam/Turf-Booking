@@ -12,6 +12,8 @@ urlpatterns = [
     path('block_user/<int:user_id>/',views.block_user,name="block_user"),
     path('Reject_turf/<int:turf_id>/',views.Reject_turf,name="Reject_turf"),
     path('verify_turf/<int:turf_id>/',views.verify_turf,name="verify_turf"),
-    path('suspend_toggle/<int:turf_id>/',views.suspend_toggle,name="suspend_toggle")
+    path('suspend_toggle/<int:turf_id>/',views.suspend_toggle,name="suspend_toggle"),
+    path('warn-user/<int:review_id>/', views.warn_user_view, name='warn_user'),
+     path('delete-message/<int:message_id>/', views.delete_message, name='delete_message'),
     
 ]

@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 import uuid
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class Manager(BaseUserManager):
@@ -42,6 +43,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     new_turfs_alerts = models.BooleanField(default=False)
     booking_updates = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
+    
+    warning_count = models.IntegerField(default=0)
+    can_comment = models.BooleanField(default=True)
+    comment_banned_at = models.DateTimeField(null=True, blank=True)
+    
 
     ROLE_CHOICES = [
         ('user', 'Regular User'),
@@ -59,6 +65,54 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+# Place this inside your User model
+
+    @property
+    def comment_restriction_countdown(self):
+        
+        if self.can_comment or not self.comment_banned_at:
+            return None 
+        
+        expiration_time = self.comment_banned_at + timedelta(days=15)
+        
+        remaining_time = expiration_time - timezone.now()
+
+       
+        if remaining_time.total_seconds() <= 0:
+            return "Restriction lifted"
+
+        
+        days = remaining_time.days
+        hours = remaining_time.seconds // 3600 # Convert seconds to hours
+
+        if days > 1:
+            return f"{days} days remaining"
+        elif days == 1:
+            return "1 day remaining"
+        elif hours > 1:
+            return f"about {hours} hours remaining"
+        elif hours == 1:
+            return "about 1 hour remaining"
+        else:
+            return "Less than an hour remaining"
+
+    
+    def clear_expired_restriction(self):
+      
+        if self.can_comment:
+            return
+
+        # Check if the 15-day ban has passed
+        if self.comment_banned_at and (timezone.now() - self.comment_banned_at > timedelta(days=15)):
+            # 1. Restore their ability to comment
+            self.can_comment = True
+            # 2. Reset their warning count
+            self.warning_count = 0
+            # 3. Clear the ban date
+            self.comment_banned_at = None
+            # 4. Save the changes to the database
+            self.save()
     
     
     @property
@@ -197,8 +251,35 @@ class Rating(models.Model):
     score = models.IntegerField(default=0) # e.g., 1 to 5
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    admin_warning_note = models.TextField(blank=True, null=True)
 
 
 
     def __str__(self):
         return f"{self.turf.turf_name} - {self.score} stars"
+    
+
+class UserMessage(models.Model):
+    MESSAGE_TYPES = [
+        ('warning', 'Warning'),
+        ('info', 'Info'),
+        ('update', 'Update'),
+        ('report','Report')
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    message_type = models.CharField(
+        max_length=20,
+        choices=MESSAGE_TYPES,
+        default='info'
+    )
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_message_type_display()} for {self.user.email} @ {self.created_at:%Y-%m-%d}"

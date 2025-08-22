@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required , user_passes_test
 from django.db import transaction,IntegrityError
 from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
-from accounts.models import Turf, TurfImage, Sport,Booking,Rating
+from accounts.models import Turf, TurfImage, Sport,Booking,Rating,UserMessage
 from accounts.forms import TurfProfileForm
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -520,6 +520,7 @@ def turf_details(request, turf_id):
 def booking(request):
     # --- 1. Get all booking data from the helper function ---
     booking_data = get_booking_details(request.user)
+    request.user.clear_expired_restriction()
 
   
     paginator = Paginator(booking_data['past_bookings'], 5) 
@@ -539,30 +540,40 @@ def booking(request):
         'total_cost': booking_data['total_cost'],
         'most_booked_turfs': booking_data['most_booked_turfs'],
         'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
-        'completed_booking_count': booking_data['completed_booking_count']
+        'completed_booking_count': booking_data['completed_booking_count'],
+         'is_comment_restricted': not request.user.can_comment,
     }
     return render(request, 'booking.html', context)
 
 
 
 # -------------------- SUBMIT RATING (AJAX) --------------------
+
 @login_required
 @require_POST
 def submit_rating(request):
-    # --- 1. Process Incoming Data ---
+    # Run the check to see if a ban has expired.
+    request.user.clear_expired_restriction()
+
     try:
         data = json.loads(request.body)
         booking_id = data.get('booking_id')
         score = int(data.get('score'))
         comment = data.get('comment', '')
 
-        # --- 2. Validate the Booking ---
+        # --- NEW LOGIC ---
+        # If the user is restricted, forcefully make the comment empty.
+        if not request.user.can_comment:
+            comment = '' 
+        # --- END OF NEW LOGIC ---
+
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
         
         if Rating.objects.filter(booking=booking).exists():
             return JsonResponse({'status': 'error', 'message': 'You have already rated this booking.'}, status=400)
 
-        # --- 3. Create the Rating ---
+        # The rest of the view proceeds as normal.
+        # The score is saved, but the comment will be empty for restricted users.
         Rating.objects.create(
             user=request.user,
             turf=booking.turf,
@@ -575,7 +586,6 @@ def submit_rating(request):
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
     
 
 # -------------------- VIEW BOOKING DETAIL --------------------    
@@ -1004,3 +1014,31 @@ def recent_bookings(request):
     return render(request, 'owner/recent_bookings.html', context)
 
 
+def report_comment(request, rating_id):
+    review = get_object_or_404(Rating, id=rating_id)
+
+    if request.method == "POST":
+        reason = request.POST.get("reason", "").strip()
+        if reason:
+            admins = User.objects.filter(is_staff=True)
+
+            if admins.exists():
+                for admin_user in admins:
+                    UserMessage.objects.create(
+                        user=admin_user,   # send to each admin
+                        message_type="report",
+                        message=(
+                            f"🚨 <b>Review Reported</b><br>"
+                            f"Comment ID: <b>{review.id}</b><br>"
+                            f"Reported by: <b>{request.user.email if request.user.is_authenticated else 'Anonymous'}</b><br>"
+                            f"Reason: <b>{reason}</b><br>"
+                            f"Turf: <b>{review.turf.turf_name}</b>"
+                        ),
+                    )
+                messages.success(request, "Your report has been submitted to the admins.")
+            else:
+                messages.error(request, "No admins available to receive the report.")
+        else:
+            messages.error(request, "Please provide a reason for reporting.")
+
+    return redirect("turf_details", turf_id=review.turf.id)
