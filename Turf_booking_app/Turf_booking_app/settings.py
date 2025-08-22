@@ -64,7 +64,7 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            # THE FIX IS APPLIED HERE
+         
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
