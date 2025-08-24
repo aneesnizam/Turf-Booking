@@ -251,11 +251,11 @@
                   </div>
 
                   <div class="relative pt-1">
-                    <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center justify-between flex-wrap mb-1">
                       <span class="text-xs font-medium text-purple-600">
                         Current Time: {% now "g:i A" %}
                       </span>
-                      <span class="text-xs font-medium text-purple-600">
+                      <span class="text-[12px] md:text-xs font-medium text-purple-600">
                         {% widthratio current_hour 24 100 %}% of day passed
                       </span>
                     </div>
@@ -298,7 +298,7 @@
                       <i
                         class="fas fa-calendar-check text-green-500 mr-1 text-sm"
                       ></i>
-                      <span class="text-sm">{{ total_bookings }} bookings</span>
+                      <span class="text-sm whitespace-nowrap">{{ total_bookings }} bookings</span>
                     </div>
                   </div>
                 </div>
@@ -590,7 +590,7 @@
 
           <div id="gallery" class="tab-content">
             <h2 class="text-2xl font-bold mb-4">Turf Gallery</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               {% for image in turf_detail.images.all %}
               <div class="rounded-lg overflow-hidden h-48">
                 <img

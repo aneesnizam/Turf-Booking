@@ -7,6 +7,24 @@
 </div>
 {% endblock %}{% block content %}
 
+<style>
+  /* Animation for counting up numbers */
+  @keyframes countup {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-countup {
+    animation: countup 1s ease-out forwards;
+  }
+</style>
+
 <section class="relative bg-gray-900 overflow-hidden">
   <div class="absolute inset-0 overflow-hidden opacity-10">
     <div
@@ -148,7 +166,7 @@
               Premium Turfs Network
             </span>
           </h2>
-          <p class="text-gray-700 text-sm md:text-base leading-snug mb-4">
+          <p class="text-gray-700 text-xs md:text-base leading-snug mb-4">
             <!-- Darker text -->
             Access our nationwide network of professional-grade sports turfs
           </p>
@@ -196,57 +214,9 @@
   </div>
 </section>
 
-<style>
-  /* Animation for counting up numbers */
-  @keyframes countup {
-    from {
-      opacity: 0;
-      transform: translateY(5px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 
-  .animate-countup {
-    animation: countup 1s ease-out forwards;
-  }
-</style>
 
-<script>
-  // Count-up animation for turf number
-  document.addEventListener("DOMContentLoaded", () => {
-    const counter = document.querySelector(".animate-countup");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const target = +entry.target.getAttribute("data-target");
-            const duration = 1500;
-            const start = 0;
-            const increment = target / (duration / 16);
 
-            let current = start;
-            const timer = setInterval(() => {
-              current += increment;
-              if (current >= target) {
-                clearInterval(timer);
-                current = target;
-              }
-              entry.target.textContent = Math.floor(current).toLocaleString();
-            }, 16);
-
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(counter);
-  });
-</script>
 
 <!-- Popular Turfs Section -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-[#fff]">
@@ -343,67 +313,62 @@
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
       <ul class="divide-y divide-gray-200">
         {% for booking in request.user.bookings.all|dictsortreversed:"id"|slice:":3" %}
-        <li>
-          <div class="px-4 py-4 sm:px-6">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-gray-200">
-                  {% with images=booking.turf.images.all %}
-                    {% if images %}
-                      <img
-                        class="h-full w-full object-cover"
-                        src="{{ images.0.image.url }}"
-                        alt="Turf image"
-                      />
-                    {% else %}
-                      <img
-                        class="h-full w-full object-cover"
-                        src="{% static 'images/fallback.jpg' %}"
-                        alt="No image available"
-                      />
-                    {% endif %}
-                  {% endwith %}
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">
-                    {{booking.turf.turf_name}}
-                  </div>
-                  <div class="text-sm text-gray-500">{{ booking.turf.place }}</div>
-                </div>
-              </div>
-              <div class="ml-4 flex-shrink-0 flex">
-                <div class="mr-6">
-                  <div class="text-sm text-gray-900 font-medium">
-                    {{booking.human_date}}
-                  </div>
-                  <div class="text-sm text-gray-500">
-                    {{booking.start_time|date:"g:i A"}} -
-                    {{booking.end_time|date:"g:i A"}}
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-bold text-gray-900">
-                    ₹{{booking.total_cost}}
-                  </div>
-
-                  {% if booking.status == "confirmed" %}
-                  <div class="text-xs text-green-600 font-medium">
-                    {{booking.status }}
-                  </div>
-                  {% elif booking.status == "pending" %}
-                  <div class="text-xs text-yellow-600 font-medium">
-                    {{booking.status }}
-                  </div>
-                  {% else %}
-                  <div class="text-xs text-red-600 font-medium">
-                    {{booking.status }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
+      <li>
+  <div class="px-4 py-4 sm:px-6">
+    <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+      
+      <div class="flex items-center">
+        <div class="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-gray-200">
+          {% with images=booking.turf.images.all %}
+            {% if images %}
+              <img class="h-full w-full object-cover" src="{{ images.0.image.url }}" alt="Turf image" />
+            {% else %}
+              <img class="h-full w-full object-cover" src="{% static 'images/fallback.jpg' %}" alt="No image available" />
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div class="ml-4">
+          <div class="text-sm font-medium text-gray-900">
+            {{booking.turf.turf_name}}
           </div>
-        </li>
+          <div class="text-sm text-gray-500">{{ booking.turf.place }}</div>
+        </div>
+      </div>
+
+      <div class="flex w-full items-center justify-between sm:ml-4 sm:flex-shrink-0 lg:w-auto lg:gap-14">
+        
+        <div >
+          <div class="text-sm text-gray-900 font-medium">
+            {{booking.human_date}}
+          </div>
+          <div class="text-sm text-gray-500">
+            {{booking.start_time|date:"g:i A"}} - {{booking.end_time|date:"g:i A"}}
+          </div>
+        </div>
+
+        <div class="text-right">
+          <div class="text-sm font-bold text-gray-900">
+            ₹{{booking.total_cost}}
+          </div>
+          {% if booking.status == "confirmed" %}
+            <div class="text-xs text-green-600 font-medium">
+              {{booking.status}}
+            </div>
+          {% elif booking.status == "pending" %}
+            <div class="text-xs text-yellow-600 font-medium">
+              {{booking.status}}
+            </div>
+          {% else %}
+            <div class="text-xs text-red-600 font-medium">
+              {{booking.status}}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</li>
         {% empty %}
         <li>
           <div class="px-4 py-8 text-center">
@@ -524,5 +489,38 @@
   </div>
 </div>
 
+<script>
+  // Count-up animation for turf number
+  document.addEventListener("DOMContentLoaded", () => {
+    const counter = document.querySelector(".animate-countup");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = +entry.target.getAttribute("data-target");
+            const duration = 1500;
+            const start = 0;
+            const increment = target / (duration / 16);
+
+            let current = start;
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                clearInterval(timer);
+                current = target;
+              }
+              entry.target.textContent = Math.floor(current).toLocaleString();
+            }, 16);
+
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(counter);
+  });
+</script>
 {% endblock %}
 <!-- Footer -->
