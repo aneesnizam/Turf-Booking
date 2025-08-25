@@ -655,10 +655,9 @@ def generate_invoice_pdf(request, booking_id):
     response['Content-Disposition'] = f'attachment; filename="invoice_{booking.id}.pdf"'
 
     pisa_status = pisa.CreatePDF(
-        io.StringIO(html),
-        dest=response,
-        encoding='UTF-8'
-    )
+    io.BytesIO(html.encode("UTF-8")),  # encode HTML into bytes
+    dest=response
+)
 
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
@@ -1050,5 +1049,6 @@ def report_comment(request, rating_id):
                 messages.error(request, "No admins available to receive the report.")
         else:
             messages.error(request, "Please provide a reason for reporting.")
+
 
     return redirect("turf_details", turf_id=review.turf.id)
