@@ -5,6 +5,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.conf import settings
 import requests
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
+
 
 def user_login(request):
     if request.user.is_authenticated:
@@ -71,8 +75,7 @@ def explore_sports(request):
     return render(request, 'explore_sports.html')
 
 
-def forgot_password(request):
-    return render(request, 'forgot_password.html')
+
 
 
 def autocomplete_place(request):
@@ -137,7 +140,40 @@ def about_us(request):
 
 
 def contact_us(request):
-    return render(request,'pages/contact_us.html')
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        # Create a dictionary with the data to pass to the template
+        context = {
+            'name': name,
+            'email': email,
+            'subject': subject,
+            'message': message,
+        }
+
+        # Render the HTML and plain text versions of the email
+        html_message = render_to_string('pages/contact_email.html', context)
+        plain_message = render_to_string('pages/contact_email.txt', context)
+
+        try:
+            send_mail(
+                subject=f"Contact Form: {subject}",
+                message=plain_message, # Use the plain text version here
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=['aneesonline247@gmail.com'],
+                fail_silently=False,
+                html_message=html_message, # Add the HTML version here
+            )
+            messages.success(request, "Your message has been sent successfully! ✨")
+            return redirect('contact_us')
+        except Exception as e:
+            messages.error(request, f"Error sending email: {e}")
+
+    return render(request, 'pages/contact_us.html')
+
 
 
 def privacy_policy(request):

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Form Submission</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #0056b3; border-bottom: 2px solid #eee; padding-bottom: 10px;">New Contact Form Submission</h2>
+        <p>You have received a new message from your website's contact form.</p>
+
+        <p>
+            <strong style="color: #555;">From:</strong> {{ name }}
+        </p>
+        <p>
+            <strong style="color: #555;">Email:</strong> <a href="mailto:{{ email }}">{{ email }}</a>
+        </p>
+        <p>
+            <strong style="color: #555;">Subject:</strong> {{ subject }}
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <h4 style="color: #555; margin-bottom: 10px;">Message:</h4>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+            <p style="margin: 0;">{{ message|linebreaksbr }}</p>
+        </div>
+    </div>
+
+</body>
+</html>

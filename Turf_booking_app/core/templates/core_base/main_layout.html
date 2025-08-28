@@ -36,14 +36,32 @@
                         Book Now
                     </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="hidden sm:block text-gray-600 hover:text-green-600 transition duration-300">Login</a>
+                        <a href="{% url 'user_login' %}" class="hidden sm:block text-gray-600 hover:text-green-600 transition duration-300">Login</a>
                         
                     {% endif %}
                 </div>
             </div>
         </div>
     </nav>
-
+    {% if messages %}
+    <div id="message-container" class="sticky top-0 z-20 w-full px-4 sm:px-6 lg:px-8 message-popup">
+        {% for message in messages %}
+        <div class="relative flex items-center justify-between p-3 mt-4 mb-3 rounded-md shadow-md
+            {% if message.tags == 'success' %} bg-green-100 text-green-800
+            {% elif message.tags == 'error' %} bg-red-100 text-red-800
+            {% elif message.tags == 'info' %} bg-blue-100 text-blue-800
+            {% elif message.tags == 'warning' %} bg-yellow-100 text-yellow-800
+            {% endif %}"
+            role="alert" aria-live="assertive">
+            <p class="mr-4">{{ message }}</p>
+            <!-- <button type="button" class="close-button text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded-full p-1" aria-label="Dismiss message">
+                <i class="fas fa-times text-lg"></i>
+            </button> -->
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <main>
         {% block content %}
         {% endblock %}
