@@ -54,7 +54,7 @@ def get_booking_details(user):
             cancelled_bookings.append(booking)
             continue
 
-        if end_dt < now:
+        if end_dt < now and booking.status != "pending" :
             past_bookings_list.append(booking)
             past_booking_ids.append(booking.id)
             start_dt = timezone.make_aware(datetime.combine(booking.booking_date, booking.start_time))

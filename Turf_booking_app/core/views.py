@@ -1040,6 +1040,19 @@ def report_comment(request, rating_id):
 # -------------------- TURF DETAILS & BOOKING CREATION --------------------
 @login_required
 def turf_details(request, turf_id):
+    
+    time_threshold = timezone.now() - timedelta(minutes=30)
+    bookings_to_cancel = Booking.objects.filter(
+            status='pending',
+            created_at__lt=time_threshold
+        )
+    count = bookings_to_cancel.count()
+        
+    if count > 0:
+            # 4. Update their status to 'cancelled' in a single, efficient database query.
+            bookings_to_cancel.update(status='cancelled')
+    
+    
     turf = get_object_or_404(Turf, id=turf_id)
     ratings = turf.ratings.all().annotate(
         is_my_review=Case(
