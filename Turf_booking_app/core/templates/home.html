@@ -303,7 +303,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-2xl font-bold text-gray-900">Your Recent Bookings</h2>
-        {% if request.user.bookings.all|length %}
+        {% if bookings %}
       <a href="{% url 'booking' %}" class="text-green-600 hover:text-green-800 font-medium"
         >View All <i class="fas fa-arrow-right ml-1"></i
       ></a>
@@ -312,7 +312,7 @@
 
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
       <ul class="divide-y divide-gray-200">
-        {% for booking in request.user.bookings.all|dictsortreversed:"id"|slice:":3" %}
+        {% for booking in bookings %}
       <li>
   <div class="px-4 py-4 sm:px-6">
     <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">

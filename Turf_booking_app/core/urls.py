@@ -35,6 +35,9 @@ urlpatterns = [
     path('owner_dashboard/delete_image/<int:image_id>/', views.delete_image, name="delete_image"),
     path('report_comment/<int:rating_id>/', views.report_comment, name="report_comment"),
     
+   path('booking/checkout/<int:booking_id>/', views.create_booking_order, name='create_booking_order'),
+    path('payment/verify/', views.verify_booking_payment, name='verify_booking_payment'),
+    
     
 
 ]

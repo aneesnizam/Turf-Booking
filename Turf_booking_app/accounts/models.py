@@ -205,6 +205,9 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     verify_token = models.CharField(max_length=36, default=generate_token, unique=True)
+    
+    paid = models.BooleanField(default=False)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
 
 
     @property

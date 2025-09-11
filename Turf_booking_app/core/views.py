@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect ,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required , user_passes_test
@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from accounts.models import Turf, TurfImage, Sport,Booking,Rating,UserMessage
 from accounts.forms import TurfProfileForm
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponseBadRequest
 from django.template.loader import render_to_string,get_template
 from django.shortcuts import get_object_or_404
 User = get_user_model()
@@ -27,6 +27,12 @@ import qrcode
 from .utility import get_booking_details
 from .models import Achievement,UserAchievement
 from .achievements_logic import check_all_achievements
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Prefetch
+
+
 
 
 
@@ -53,11 +59,23 @@ def delete_review(request,review_id):
 # -------------------- HOME --------------------
 @login_required
 def home(request):
-    all_turfs = Turf.objects.all().filter(status = 'active', verification_status='verified',is_suspended = False,)
-    top_rated_turfs = all_turfs.annotate(average_ratings = Coalesce(Avg('ratings__score'),0.0)).order_by('-average_ratings')[:3]
+    all_turfs  = (
+        Turf.objects.filter(status = 'active', verification_status='verified',is_suspended = False,)
+        .prefetch_related(
+            Prefetch('images',queryset=TurfImage.objects.order_by('id'))
+        )
+        .annotate(average_ratings=Coalesce(Avg("ratings__score"), 0.0))
+    )
+    bookings = (
+        request.user.bookings.select_related("turf")   # avoids hitting turf per booking
+        .prefetch_related(Prefetch("turf__images", queryset=TurfImage.objects.order_by("id")))
+        .order_by("-id")[:3]
+    )
+    top_rated_turfs = all_turfs.order_by("-average_ratings")[:3]
     context = {
         'all_turfs':top_rated_turfs,
-        'turf_counts': all_turfs.count()
+        "bookings": bookings,
+        "turf_counts": all_turfs.count(),
     }
     return render(request, 'home.html',context)
 
@@ -157,6 +175,8 @@ def turfs(request):
                 turf.distance = round(distance, 2)
             else:
                 turf.distance = None 
+    user_fav_ids = set(request.user.favourites.values_list('id', flat=True)) if request.user.is_authenticated else set()
+
 
     # --- 7. Prepare Context & Final Response ---
     context = {
@@ -166,7 +186,8 @@ def turfs(request):
         'selected_sports': sports_query,
         'latitude': user_latitude,
         'longitude': user_longitude,
-        'turfs_to_display': nearby_turfs_qs,  
+        'turfs_to_display': nearby_turfs_qs,
+        'user_fav_ids': user_fav_ids,   
     }
     is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     if is_ajax:
@@ -353,16 +374,39 @@ def update_user_location(request):
     
 
 # -------------------- FAVORITES  --------------------    
+
 @login_required    
 def favorites(request):
-    user_favorites = request.user.favourites.all()
-    user_input = request.GET.get('q','').strip()
+    # Base favorites queryset with related data to avoid N+1 queries
+    user_favorites = (
+        request.user.favourites
+        .prefetch_related(
+            Prefetch("images", queryset=TurfImage.objects.order_by("id")),
+            "sports"
+        )
+        .select_related("owner")   # if Turf has an FK like `owner`
+        .order_by("-created_at")   # show latest favorited first
+    )
+
+    # Search filter
+    user_input = request.GET.get("q", "").strip()
     if user_input:
-        user_favorites = user_favorites.filter(Q(city__icontains = user_input)| Q(place__icontains = user_input)|Q(turf_name__icontains = user_input))
+        user_favorites = user_favorites.filter(
+            Q(city__icontains=user_input) |
+            Q(place__icontains=user_input) |
+            Q(turf_name__icontains=user_input)
+        )
+
+    # Pagination (10 favorites per page)
+    paginator = Paginator(user_favorites, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-        'favorites':user_favorites,
+        "favorites": page_obj,
+        "query": user_input,
     }
-    return render(request,'favorites.html',context)
+    return render(request, "favorites.html", context)
+
         
         
 
@@ -428,124 +472,40 @@ def check_availability(request, turf_id):
 
 
 
-# -------------------- TURF DETAILS & BOOKING CREATION --------------------
-@login_required
-def turf_details(request, turf_id):
-    # --- 1. Initial Setup ---
-    turf = get_object_or_404(Turf, id=turf_id)
-    ratings = turf.ratings.all().annotate(
-            is_my_review=Case(
-                When(user=request.user , then=Value(1)),
-                     default=Value(0),
-                     output_field=IntegerField()
-            )
-        ).order_by('-is_my_review','-created_at')
-
-
-
-    if request.method == 'POST':
-        # --- 2. Process and Validate Form Data ---
-        date_str = request.POST.get('booking_date')
-        start_time_str = request.POST.get('start_time')
-        duration_str = request.POST.get('duration')
-
-        if not all([date_str, start_time_str, duration_str]):
-            messages.error(request, 'Missing form data. Please fill all fields.')
-            return redirect('turf_details', turf_id=turf.id)
-        
-        try:
-            duration_hours = Decimal(duration_str)
-            booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            start_time_obj = datetime.strptime(start_time_str, '%H:%M').time()
-        except (InvalidOperation, TypeError, ValueError):
-            messages.error(request, "Invalid form data submitted.")
-            return redirect('turf_details', turf_id=turf.id)
-
-        # --- 3. Calculate Booking Times and Perform Checks ---
-        start_datetime = timezone.make_aware(datetime.combine(booking_date, start_time_obj))
-        end_datetime = start_datetime + timedelta(hours=float(duration_hours))
-        
-        if start_datetime <= timezone.now():
-            messages.error(request, 'Sorry, you cannot book a time in the past.')
-            return redirect('turf_details', turf_id=turf.id)
-
-        # --- 4. Correct Concurrency Check ---
-        conflicting_bookings = Booking.objects.filter(
-            turf=turf,
-            booking_date=start_datetime.date(),
-            start_time__lt=end_datetime.time(),
-            end_time__gt=start_datetime.time()
-        ).exclude(status='cancelled')
-        
-        if conflicting_bookings.exists():
-            messages.error(request, 'Sorry, this time slot was just booked. Please select another time.')
-            return redirect('turf_details', turf_id=turf.id)
-        
-        
-            
-
-        # --- 5. Create and Save the Booking ---
-        total_cost = (Decimal(turf.cost_per_hour) * duration_hours)
-        try:
-            with transaction.atomic():
-                booking = Booking.objects.create(
-                    user=request.user,
-                    turf=turf,
-                    booking_date=start_datetime.date(),
-                    start_time=start_datetime.time(),
-                    end_time=end_datetime.time(),
-                    total_cost=total_cost,
-                    status='confirmed'
-                )
-            
-            messages.success(request, f'Successfully booked {turf.turf_name}!')
-            return redirect('view_booking_detail', booking_token=booking.verify_token)
-
-        except Exception as e:
-            messages.error(request, f'An error occurred: {str(e)}')
-            return redirect('turf_details', turf_id=turf.id)
-            
-    # --- 6. Handle GET Request ---
-    context = {
-        'turf_detail': turf,
-        'total_bookings': turf.bookings.count(),
-        'current_hour': datetime.now().hour,
-        'ratings': ratings,
-    }
-    return render(request, 'turf_details.html', context)
-
 
 
 # -------------------- BOOKINGS --------------------
+@login_required
 def booking(request):
-    # --- 1. Get all booking data from the helper function ---
+    # --- 1. Optimized: Get all booking data ---
     booking_data = get_booking_details(request.user)
     request.user.clear_expired_restriction()
 
-  
-    paginator = Paginator(booking_data['past_bookings'], 5) 
+    # --- 2. Paginate completed/past bookings ---
+    paginator = Paginator(booking_data['past_bookings'], 5)
     completed_page_obj = paginator.get_page(request.GET.get('completed_page'))
-    
-    # --- 3. Handle AJAX requests (if any) ---
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'partials/completed_bookings.html', {
-            'completed_page_obj': completed_page_obj
-        })
 
-    # --- 4. Prepare the context and render the full page ---
+    # --- 3. Handle AJAX requests (partial refresh only) ---
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(
+            request,
+            'partials/completed_bookings.html',
+            {'completed_page_obj': completed_page_obj}
+        )
+
+    # --- 4. Context for full page ---
     context = {
         'completed_page_obj': completed_page_obj,
         'upcoming_bookings': booking_data['upcoming_bookings'],
+        'cancelled_bookings': booking_data['cancelled_bookings'],
         'hours_played': booking_data['hours_played'],
         'total_cost': booking_data['total_cost'],
         'most_booked_turfs': booking_data['most_booked_turfs'],
         'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
         'completed_booking_count': booking_data['completed_booking_count'],
-         'is_comment_restricted': not request.user.can_comment,
+        'is_comment_restricted': not request.user.can_comment,
     }
     return render(request, 'booking.html', context)
-
-
 
 # -------------------- SUBMIT RATING (AJAX) --------------------
 
@@ -723,51 +683,66 @@ def dashboard_redirect_view(request):
 
 
 # -------------------- PROFILE --------------------
+
 @login_required
 def profile(request):
+    # --- 1. Get pre-optimized booking data ---
+    # This function should already handle all select_related/prefetch_related calls.
     booking_data = get_booking_details(request.user)
+
+    # THE FIX: Simply slice the data. Don't add more database calls here.
+    # The data from get_booking_details is already optimized.
+    past_bookings = booking_data['past_bookings'][:4]
+    upcoming_bookings = booking_data['upcoming_bookings'][:4]
+
+    # --- 2. Calculate Counts ---
     favourites_count = request.user.favourites.count()
-    total_count = booking_data['completed_booking_count'] + booking_data['upcoming_bookings_count']
-    check_all_achievements(request.user)
-    
-    
-    
-    # --- Achievement Data Fetching ---
-    user_progress = UserAchievement.objects.filter(
-        user=request.user, 
-        achievement=OuterRef('pk')
+    total_count = (
+        booking_data['completed_booking_count'] +
+        booking_data['upcoming_bookings_count']
     )
 
-    # Get all achievements and annotate them with the user's specific progress
-    achievements = Achievement.objects.annotate(
-        current_progress=Subquery(user_progress.values('current_progress')[:1]),
-        unlocked=Subquery(user_progress.values('unlocked')[:1]),
-        # Calculate progress percentage for the progress bar
-        progress_percentage=ExpressionWrapper(
-            100.0 * F('current_progress') / F('target_value'),
-            output_field=fields.FloatField()
+    # --- 3. Achievements (This section was already well-optimized) ---
+    check_all_achievements(request.user)
+
+    user_progress = UserAchievement.objects.filter(
+        user=request.user,
+        achievement=OuterRef("pk")
+    )
+
+    achievements = (
+        Achievement.objects
+        .annotate(
+            current_progress=Subquery(user_progress.values("current_progress")[:1]),
+            unlocked=Subquery(user_progress.values("unlocked")[:1]),
+            progress_percentage=ExpressionWrapper(
+                100.0 * F("current_progress") / F("target_value"),
+                output_field=fields.FloatField(),
+            ),
         )
-    ).order_by('-unlocked', '-progress_percentage') # Show unlocked and in-progress first
-    
+        .order_by("-unlocked", "-progress_percentage")
+    )
+
     achievement_unlocked_count = achievements.filter(unlocked=True).count()
-    
+
+    # --- 4. Prepare Context for Template ---
     context = {
-        'upcoming_bookings': booking_data['upcoming_bookings'][:4],
-        'hours_played': booking_data['hours_played'],
-        'total_cost': booking_data['total_cost'],
-        'past_bookings':booking_data['past_bookings'][:4],
-        'most_booked_turfs': booking_data['most_booked_turfs'],
-        'upcoming_bookings_count': booking_data['upcoming_bookings_count'],
-        'completed_booking_count': booking_data['completed_booking_count'],
-        'favourites_count' : favourites_count,
-        'total_count' : total_count,
-        'achievements' : achievements,
-        'achievement_unlocked_count':achievement_unlocked_count
+        "upcoming_bookings": upcoming_bookings,
+        "hours_played": booking_data["hours_played"],
+        "total_cost": booking_data["total_cost"],
+        "past_bookings": past_bookings,
+        "most_booked_turfs": booking_data["most_booked_turfs"],
+        "upcoming_bookings_count": booking_data["upcoming_bookings_count"],
+        "completed_booking_count": booking_data["completed_booking_count"],
+        "favourites_count": favourites_count,
+        "total_count": total_count,
+        "achievements": achievements,
+        "achievement_unlocked_count": achievement_unlocked_count,
     }
-    
-    return render(request, 'profile.html',context)
 
+    return render(request, "profile.html", context)
 
+@login_required
 def profile_settings(request):
     user = request.user
 
@@ -780,9 +755,10 @@ def profile_settings(request):
         user.save()
 
         messages.success(request, "Preferences updated successfully.")
-        return redirect("profile")  
+        return redirect("profile")
 
-    return redirect('profile')
+    return redirect("profile")
+
 
 
 
@@ -1052,3 +1028,191 @@ def report_comment(request, rating_id):
 
 
     return redirect("turf_details", turf_id=review.turf.id)
+
+
+
+
+
+
+
+
+
+# -------------------- TURF DETAILS & BOOKING CREATION --------------------
+@login_required
+def turf_details(request, turf_id):
+    turf = get_object_or_404(Turf, id=turf_id)
+    ratings = turf.ratings.all().annotate(
+        is_my_review=Case(
+            When(user=request.user, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField()
+        )
+    ).order_by('-is_my_review', '-created_at')
+
+    if request.method == 'POST':
+        # Step 1: Validate form data (No change here)
+        date_str = request.POST.get('booking_date')
+        start_time_str = request.POST.get('start_time')
+        duration_str = request.POST.get('duration')
+        
+        try:
+            duration_hours = Decimal(duration_str)
+            start_datetime = timezone.make_aware(datetime.combine(
+                datetime.strptime(date_str, '%Y-%m-%d').date(),
+                datetime.strptime(start_time_str, '%H:%M').time()
+            ))
+            end_datetime = start_datetime + timedelta(hours=float(duration_hours))
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, "Invalid form data submitted.")
+            return redirect('turf_details', turf_id=turf.id)
+
+        if start_datetime <= timezone.now():
+            messages.error(request, 'Sorry, you cannot book a time in the past.')
+            return redirect('turf_details', turf_id=turf.id)
+
+        # --- THIS IS THE NEW, MORE ROBUST LOGIC ---
+        total_cost = (Decimal(turf.cost_per_hour) * duration_hours)
+        booking = None
+
+        try:
+            # Step 2: Use a single, safe database transaction.
+            with transaction.atomic():
+                # Step 2a: First, try to find and "reactivate" a cancelled booking for this slot.
+                # .update() is an atomic operation. It will only succeed if a cancelled booking is found.
+                updated_rows = Booking.objects.filter(
+                    turf=turf,
+                    booking_date=start_datetime.date(),
+                    start_time=start_datetime.time(),
+                    status='cancelled'
+                ).update(
+                    user=request.user,
+                    end_time=end_datetime.time(),
+                    total_cost=total_cost,
+                    status='pending', # Change status from 'cancelled' back to 'pending'.
+                    paid=False
+                )
+
+                if updated_rows > 0:
+                    # If we successfully updated a row, it means we have claimed the cancelled slot.
+                    # We then fetch that booking to use its ID.
+                    booking = Booking.objects.get(
+                        turf=turf,
+                        booking_date=start_datetime.date(),
+                        start_time=start_datetime.time()
+                    )
+                else:
+                    # Step 2b: If no cancelled booking was found, try to create a brand new one.
+                    # The database's unique constraint will automatically prevent creation
+                    # if another user's 'pending' or 'confirmed' booking already exists.
+                    booking = Booking.objects.create(
+                        user=request.user,
+                        turf=turf,
+                        booking_date=start_datetime.date(),
+                        start_time=start_datetime.time(),
+                        end_time=end_datetime.time(),
+                        total_cost=total_cost,
+                        status='pending',
+                        paid=False
+                    )
+            
+            # Step 3: If either the update or create was successful, redirect to payment.
+            return redirect('create_booking_order', booking_id=booking.id)
+
+        except IntegrityError:
+            # This 'except' block will only be triggered if the .create() method fails
+            # because another active booking exists. This is our safety net for race conditions.
+            messages.error(request, 'Sorry, this time slot was just booked by someone else. Please select another time.')
+            return redirect('turf_details', turf_id=turf.id)
+        except Exception as e:
+            # Catch any other unexpected errors.
+            messages.error(request, f'An unexpected error occurred: {str(e)}')
+            return redirect('turf_details', turf_id=turf.id)
+            
+    # Context for the GET request.
+    context = {'turf_detail': turf, 'ratings': ratings}
+    return render(request, 'turf_details.html', context)
+
+
+
+# -------------------- 2. RAZORPAY ORDER CREATION --------------------
+@login_required
+def create_booking_order(request, booking_id):
+    """
+    Creates a Razorpay order for the 'Pending' booking.
+    """
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+    if booking.paid:
+        messages.warning(request, "This booking has already been paid for.")
+        return redirect('view_booking_detail', booking_token=booking.verify_token)
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    order_amount = int(booking.total_cost * 100)
+    order_currency = 'INR'
+    order_receipt = f'booking_rcptid_{booking.id}'
+
+    try:
+        payment_order = client.order.create({
+            'amount': order_amount, 'currency': order_currency, 'receipt': order_receipt, 'payment_capture': 1
+        })
+        payment_order_id = payment_order['id']
+    except Exception as e:
+        print(f"ERROR: Could not create Razorpay order. Details: {e}") 
+        messages.error(request, 'Payment gateway error. Please try again.')
+        # We don't delete the booking here, because it might be a temporary network issue.
+        # The user might want to try paying again.
+        return redirect('turf_details', turf_id=booking.turf.id)
+
+    context = {
+        'booking': booking, 'amount': order_amount, 'api_key': settings.RAZORPAY_KEY_ID, 'order_id': payment_order_id,
+    }
+    return render(request, 'booking_checkout.html', context)
+
+
+# -------------------- 3. RAZORPAY PAYMENT VERIFICATION --------------------
+@csrf_exempt
+def verify_booking_payment(request):
+    """
+    Verifies the payment. If successful, it flips the booking status from
+    'Pending' to 'Confirmed'. This is the final step.
+    """
+    if request.method != 'POST':
+        return HttpResponseBadRequest('POST requests only')
+
+    razorpay_payment_id = request.POST.get('razorpay_payment_id')
+    razorpay_order_id = request.POST.get('razorpay_order_id')
+    razorpay_signature = request.POST.get('razorpay_signature')
+    
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+    try:
+        # Step 1: Verify the signature. This is the most critical security check.
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id, 'razorpay_payment_id': razorpay_payment_id, 'razorpay_signature': razorpay_signature
+        }
+        client.utility.verify_payment_signature(params_dict)
+
+        # Step 2: If signature is valid, get the booking_id from the receipt.
+        order_details = client.order.fetch(razorpay_order_id)
+        booking_id = int(order_details['receipt'].split('_')[-1])
+        booking = Booking.objects.get(id=booking_id)
+        
+        # Step 3: Update the booking to 'Confirmed' and 'Paid'.
+        booking.status = 'confirmed' 
+        booking.payment_id = razorpay_payment_id
+        booking.paid = True
+        booking.save()
+        
+        # Finally, redirect to the success page.
+        return redirect('view_booking_detail', booking_token=booking.verify_token)
+
+    except (razorpay.errors.SignatureVerificationError, Booking.DoesNotExist):
+        # If verification fails or the booking doesn't exist, it's a failure.
+        # We could find and delete the pending booking here, but it's better
+        # to run a periodic cleanup task for all old pending bookings.
+        messages.error(request, "Payment failed or was tampered with.")
+        return redirect('home') # Or a dedicated payment_failed.html page
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect('home')
+

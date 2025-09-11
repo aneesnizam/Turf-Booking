@@ -1,0 +1,107 @@
+{% extends 'core_base/main_layout.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-2xl">
+    <h1 class="text-3xl font-bold text-center mb-8">Complete Your Payment</h1>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Booking Summary</h2>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Turf:</span>
+            <span class="font-medium text-gray-900">{{ booking.turf.turf_name }}</span>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Date:</span>
+            <span class="font-medium text-gray-900">{{ booking.booking_date|date:"F j, Y" }}</span>
+        </div>
+        <div class="flex justify-between border-t pt-4 mt-4">
+            <span class="text-lg font-bold text-gray-800">Total Amount:</span>
+            <span class="text-lg font-bold text-green-600">₹{{ booking.total_cost }}</span>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button id="pay-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors">
+            Pay Now
+        </button>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    // Get the Pay button by its ID
+    var payBtn = document.getElementById('pay-btn');
+
+    // Add a click event listener to the button
+    payBtn.onclick = function(e) {
+        // Create a new Razorpay options object.
+        // The data comes from the context we passed in our view.
+        var options = {
+            "key": "{{ api_key }}", 
+            "amount": "{{ amount }}", 
+            "currency": "INR",
+            "name": "GoTurfy Booking", // Your business name
+            "description": "Payment for Turf Booking #{{ booking.id }}",
+            "order_id": "{{ order_id }}", 
+
+            // This is a callback function that runs after payment is successful
+            "handler": function (response){
+                // On success, we will send the payment details to our backend for verification.
+                // We create a form and submit it.
+                var form = document.createElement('form');
+                form.method = 'POST';
+                // Set the action to the URL where we will verify the payment
+                form.action = "{% url 'verify_booking_payment' %}"; // We will create this URL in Step 3
+                
+                // Add a CSRF token for security
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+                form.appendChild(csrfInput);
+                
+                // Add the payment ID
+                var paymentIdInput = document.createElement('input');
+                paymentIdInput.type = 'hidden';
+                paymentIdInput.name = 'razorpay_payment_id';
+                paymentIdInput.value = response.razorpay_payment_id;
+                form.appendChild(paymentIdInput);
+
+                // Add the order ID
+                var orderIdInput = document.createElement('input');
+                orderIdInput.type = 'hidden';
+                orderIdInput.name = 'razorpay_order_id';
+                orderIdInput.value = response.razorpay_order_id;
+                form.appendChild(orderIdInput);
+
+                // Add the signature
+                var signatureInput = document.createElement('input');
+                signatureInput.type = 'hidden';
+                signatureInput.name = 'razorpay_signature';
+                signatureInput.value = response.razorpay_signature;
+                form.appendChild(signatureInput);
+
+                // Append the form to the body and submit it
+                document.body.appendChild(form);
+                form.submit();
+            },
+            
+            // Prefill customer details
+            "prefill": {
+                "name": "{{ request.user.fullname }}",
+                "email": "{{ request.user.email }}",
+                "contact": "{{ request.user.phone }}"
+            },
+            "theme": {
+                "color": "#16a34a" // A nice green color
+            }
+        };
+
+        // Create a new Razorpay instance and open the checkout form
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault(); // Prevent the default button action
+    };
+</script>
+{% endblock %}

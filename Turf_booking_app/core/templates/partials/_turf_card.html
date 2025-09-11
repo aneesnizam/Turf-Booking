@@ -21,7 +21,7 @@
   <div class="absolute top-3 right-3">
     <form method="post" action="{% url 'toggle_favourite' turf.id %}">
       {% csrf_token %}
-      {% if turf in request.user.favourites.all %}
+      {% if turf.id in user_fav_ids %}
         <button
           type="submit"
           class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-md text-red-500 hover:bg-red-50 transition-colors"
